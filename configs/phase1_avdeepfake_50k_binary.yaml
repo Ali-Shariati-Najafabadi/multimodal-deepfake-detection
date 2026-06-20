@@ -1,0 +1,185 @@
+experiment:
+  name: "phase1_avdeepfake_50kـbinary"
+  phase: "phase1"
+  seed: 42
+  debug_mode: false
+  debug_samples: 30000
+
+models:
+  video:
+    architecture: "resnet_lstm"
+    base_architecture: "resnet50"
+    pretrained: true
+    freeze_backbone: false
+    unfreeze_layers: ["layer2", "layer3", "layer4"]
+    dropout: 0.3
+    lstm:
+      hidden_size: 256
+      num_layers: 1
+      bidirectional: true
+      dropout: 0.2
+    output_type: "video"
+    num_classes: 2
+
+  audio:
+    architecture: "hubert"
+    pretrained_model: "facebook/hubert-base-ls960"
+    freeze_feature_extractor: false
+    unfreeze_last_n_layers: 4
+    dropout: 0.3
+    pooling: "avg"
+    output_type: "video"
+    num_classes: 2
+
+  fusion:
+    type: "concat"
+    dropout: 0.3
+
+  head:
+    type: "classification"
+    hidden_dims: [512, 256]
+    dropout: 0.3
+
+  num_classes: 2
+
+datasets:
+  fakeavceleb:
+    enabled: false
+    cache_dir: "/data/shared/ali/deepfake-detection/cache_fakeavceleb_phase1"
+    balance_classes: false
+
+  av_deepfake:
+    enabled: true
+    cache_dir: "/data/shared/ali/deepfake-detection/cache_avdeepfake_uniform_binary"
+    balance_classes: false
+    # Train: 25.000 Real (0) + 25.000 Fake (1) = 50.000 total
+    # Val:   20.000 Real (0) + 20.000 Fake (1) = 40.000 total
+
+  deepspeak:
+    enabled: false
+    cache_dir: ""
+    balance_classes: false
+
+data:
+  video:
+    max_frames: 16
+    min_frames: 16
+    frame_size: 224
+    normalize: true
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+    use_random_crop: false
+    random_crop_training_only: false
+
+  audio:
+    max_duration: 16.0
+    sample_rate: 16000
+    n_fft: 400
+    hop_length: 160
+    n_mels: 80
+    use_temporal_alignment: false
+    alignment_window: 8.0
+
+  augmentation:
+    enabled: true
+    random_horizontal_flip: 0.5
+    color_jitter:
+      brightness: 0.25
+      contrast: 0.25
+      saturation: 0.15
+      hue: 0.1
+      p: 0.6
+    random_rotation: 12
+    random_rotation_p: 0.3
+    random_grayscale: 0.15
+    gaussian_blur: 0.25
+    jpeg_compression:
+      enabled: true
+      quality_lower: 70
+      quality_upper: 100
+      p: 0.4
+    random_crop:
+      enabled: false
+      scale: [0.90, 1.0]
+      p: 0.2
+
+training:
+  batch_size: 32
+  num_epochs: 20
+  num_workers: 20
+  gradient_accumulation_steps: 2
+  use_weighted_sampler: true      # bereits balanced 1:1 durch Preprocessing
+
+  modality:
+    video_enabled: true
+    audio_enabled: true
+    use_fusion: true
+
+  staged_training:
+    enabled: false
+
+  modality_dropout:
+    enabled: false
+    video_p: 0.0
+    audio_p: 0.0
+
+  optimizer:
+    video:
+      type: "adamw"
+      lr: 3.0e-5  
+      weight_decay: 0.01
+      betas: [0.9, 0.999]
+    audio:
+      type: "adamw"
+      lr: 3.0e-5
+      weight_decay: 0.01
+      betas: [0.9, 0.999]
+    fusion:
+      type: "adamw"
+      lr: 1.0e-4
+      weight_decay: 0.05
+      betas: [0.9, 0.999]
+
+  scheduler:
+    video:
+      type: "cosine_warmup"
+      num_warmup_steps: 800
+      num_training_steps: 15700
+    audio:
+      type: "cosine_warmup"
+      num_warmup_steps: 800
+      num_training_steps: 15700
+    fusion:
+      type: "cosine_warmup"
+      num_warmup_steps: 800
+      num_training_steps: 15700
+
+  loss:
+    type: "cross_entropy"
+    class_weights: [1.0, 1.0]
+    label_smoothing: 0.05
+    auxiliary:
+      enabled: true
+      alpha: 0.6
+      beta: 0.2
+      gamma: 0.2
+
+  gradient_clip: 0.5
+  use_amp: true
+  device: "cuda"
+
+evaluation:
+  save_best_metric: "uar"
+  save_best_mode: "max"
+
+logging:
+  tensorboard_dir: "/data/shared/ali/deepfake/logs/tensorboard/phase1_avdeepfake_50k_binary"
+
+checkpointing:
+  save_dir: "/data/shared/ali/deepfake/checkpoints_new/phase1_avdeepfake_50k_binary"
+  keep_last_n: 1
+
+system:
+  cudnn_benchmark: true
+  cudnn_deterministic: false
+  empty_cache_every_n_steps: 100
