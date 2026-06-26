@@ -119,12 +119,12 @@ training:
   optimizer:
     video:
       type: "adamw"
-      lr: 1.0e-5                        # ViT mag niedrige LR
+      lr: 3.0e-5                        # ViT mag niedrige LR
       weight_decay: 0.05
       betas: [0.9, 0.999]
     audio:
       type: "adamw"
-      lr: 3.0e-5
+      lr: 5.0e-5
       weight_decay: 0.01
       betas: [0.9, 0.999]
     fusion:

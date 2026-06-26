@@ -142,7 +142,6 @@ class TimeSformer(nn.Module):
         outputs = self.model(x)
         
         if return_sequence:
-            # Alle Patch/Zeit-Tokens ohne CLS -> [B, N, 768] für Cross-Attention
             return outputs.last_hidden_state[:, 1:]
         
         return outputs.last_hidden_state[:, 0]

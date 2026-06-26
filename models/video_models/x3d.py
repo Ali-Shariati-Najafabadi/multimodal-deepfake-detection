@@ -24,8 +24,6 @@ class X3D(nn.Module):
 
         model = torch.hub.load('facebookresearch/pytorchvideo', architecture, pretrained=pretrained)
 
-        # Letzter Block ist der Kinetics-Klassifikationskopf → entfernen,
-        # damit echte spatiotemporale Features statt 400 Kinetics-Logits genutzt werden.
         self.backbone = nn.Sequential(*list(model.blocks.children())[:-1])
 
         with torch.no_grad():
@@ -70,7 +68,7 @@ class X3D(nn.Module):
                     m.bias.requires_grad = False
 
     def _selective_unfreeze(self, layers_to_unfreeze: List[str]):
-        # backbone-Kinder heißen "0","1",... → akzeptiere "blocks.3" und "3"
+        # backbone-Kinder heißen "0","1",... akzeptiere "blocks.3" und "3"
         wanted = {l.split('.')[-1] for l in layers_to_unfreeze}
         unfroze = {}
         for name, param in self.backbone.named_parameters():

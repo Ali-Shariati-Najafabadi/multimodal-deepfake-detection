@@ -25,7 +25,7 @@ class ResNetLSTM(nn.Module):
         self.architecture = architecture
         self.num_classes = num_classes
         self.output_type = output_type
-        self.pooling_type = pooling_type  # NEU
+        self.pooling_type = pooling_type 
         self.lstm_hidden_size = lstm_hidden_size
         self.lstm_bidirectional = lstm_bidirectional
         
@@ -163,7 +163,7 @@ class ResNetLSTM(nn.Module):
                 features = lstm_out.max(dim=1)[0]
             
             elif self.pooling_type == 'max_mean':
-                # Max + Mean pooling (EMPFOHLEN!)
+                # Max + Mean pooling
                 if mask is not None:
                     mask_expanded = mask.unsqueeze(-1)
                     max_pool = lstm_out.max(dim=1)[0]

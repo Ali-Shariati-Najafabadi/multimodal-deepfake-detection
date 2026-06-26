@@ -192,9 +192,7 @@ def collate_fn(batch, min_frames: int = 16, max_frames: int = 16):
     }
 
 
-# =====================================================================
-# HELPER: alle Labels aus einem Dataset/ConcatDataset holen
-# =====================================================================
+
 def _collect_labels(dataset) -> List[int]:
     """Funktioniert für ShardedCachedDataset UND ConcatDataset."""
     if isinstance(dataset, ConcatDataset):
@@ -217,33 +215,7 @@ def create_dataloaders(
     max_samples:      Optional[int]  = None,
     data_config:      Optional[Dict] = None,
 ):
-    """
-    Unterstützt alle 3 Konfigurationen über YAML:
 
-    Config A — Nur AV-Deepfake 50k (balanced, kein WeightedSampler):
-        datasets:
-          av_deepfake:  enabled: true,  cache_dir: cache_avdeepfake_50k
-          fakeavceleb:  enabled: false
-          deepspeak:    enabled: false
-        training:
-          use_weighted_sampler: false
-
-    Config B — FakeAVCeleb + AV-Deepfake Real (ConcatDataset + WeightedSampler):
-        datasets:
-          fakeavceleb:  enabled: true,  cache_dir: cache_fakeavceleb_phase1
-          av_deepfake:  enabled: true,  cache_dir: cache_avdeepfake_real_only
-          deepspeak:    enabled: false
-        training:
-          use_weighted_sampler: true
-
-    Config C — Nur FakeAVCeleb (Original):
-        datasets:
-          fakeavceleb:  enabled: true,  cache_dir: cache_fakeavceleb_phase1
-          av_deepfake:  enabled: false
-          deepspeak:    enabled: false
-        training:
-          use_weighted_sampler: true
-    """
     data_cfg     = data_config    or {}
     training_cfg = training_config or {}
 

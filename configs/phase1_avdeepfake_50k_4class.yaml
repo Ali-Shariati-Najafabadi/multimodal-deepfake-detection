@@ -108,7 +108,7 @@ training:
   num_epochs: 20
   num_workers: 20
   gradient_accumulation_steps: 2
-  use_weighted_sampler: true      # bereits balanced 1:1 durch Preprocessing
+  use_weighted_sampler: true      
 
   modality:
     video_enabled: true

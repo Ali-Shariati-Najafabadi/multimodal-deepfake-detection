@@ -397,7 +397,6 @@ class Phase1Trainer:
         else:
             raise ValueError(f"Unknown loss type: {loss_type}")
         
-        # Aux-Köpfe sind binär (real/fake pro Modalität) → eigenes, ungewichtetes Kriterium
         self.aux_criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
         print(f"   Aux Loss: CrossEntropyLoss (binär, ungewichtet)")
 
@@ -586,7 +585,6 @@ class Phase1Trainer:
             audio_masks = batch['audio_masks'].to(self.device)
             labels = batch['labels'].to(self.device)
             
-            # Binäre Modalitäts-Labels für die Aux-Köpfe aus dem 4-Klassen-Label ableiten
             #   0=real, 1=AudioMod, 2=VisualMod, 3=BothMod
             if num_classes == 4:
                 video_labels = (labels >= 2).long()

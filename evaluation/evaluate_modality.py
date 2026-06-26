@@ -32,12 +32,26 @@ class CachedEvalDataset(torch.utils.data.Dataset):
 
         self.video_ids = list(self.metadata.keys())
 
+        # benoetigte Shard-Indizes laut Metadata
+        needed = sorted({self.metadata[v]['shard'] for v in self.video_ids})
+
         self.shards = {}
         for shard_path in self.index['shards']:
             p = Path(shard_path)
-            if p.exists():
-                shard_idx = int(p.stem.split('shard')[-1])
-                self.shards[shard_idx] = h5py.File(p, 'r')
+            if not p.exists():
+                p = self.cache_dir / Path(shard_path).name  # Fallback: Datei lokal im cache_dir
+            if not p.exists():
+                continue
+            digits = ''.join(ch for ch in p.stem if ch.isdigit())
+            shard_idx = int(digits[-4:]) if digits else len(self.shards)
+            self.shards[shard_idx] = h5py.File(p, 'r')
+
+        missing = [s for s in needed if s not in self.shards]
+        if missing:
+            raise FileNotFoundError(
+                f"Shards {missing} fehlen fuer {dataset_name}/{split}. "
+                f"Geladen: {sorted(self.shards.keys())}. Pruefe {self.cache_dir}"
+            )
 
         labels = [self.metadata[v]['label'] for v in self.video_ids]
         dist = {k: labels.count(k) for k in sorted(set(labels))}
