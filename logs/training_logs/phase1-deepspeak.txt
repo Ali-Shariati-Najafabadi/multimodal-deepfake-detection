@@ -1,0 +1,2629 @@
+
+================================================================================
+DEEPFAKE DETECTION - TRAINING LOG
+================================================================================
+Start Time: 2026-01-16 16:42:28
+Log File: logs/training_logs/training_log_20260116_164228.txt
+================================================================================
+
+
+================================================================================
+CONFIGURATION (from configs/phase1_resnet_lstm_config.yaml)
+================================================================================
+
+experiment:
+  name: "phase1_resnet_lstm_baseline"
+  phase: "phase1"
+  description: "Phase 1: ResNet50 + LSTM Baseline with HuBERT"
+  tags:
+    - "baseline"
+    - "resnet_lstm"
+    - "hubert"
+  seed: 42
+  debug_mode: false
+  debug_samples: 30000
+  resume_from_checkpoint: null
+
+
+models:
+  video:
+    architecture: "resnet_lstm"
+    base_architecture: "resnet50"
+    pretrained: true
+    freeze_backbone: false
+    unfreeze_layers: ["layer4"]
+    dropout: 0.4
+    lstm:
+      hidden_size: 256
+      num_layers: 1
+      bidirectional: true
+      dropout: 0.2
+    output_type: "video"
+    num_classes: 2
+  
+  audio:
+    architecture: "hubert"
+    pretrained_model: "facebook/hubert-base-ls960"
+    freeze_feature_extractor: false
+    unfreeze_last_n_layers: 2
+    dropout: 0.3
+    pooling: "avg"
+    output_type: "video"
+    num_classes: 2
+  
+  fusion:
+    type: "concat"
+    dropout: 0.3
+  
+  head:
+    type: "classification"
+    hidden_dims: [512, 256]
+    dropout: 0.3
+  
+  num_classes: 2
+
+
+datasets:
+  av_deepfake:
+    enabled: false
+    path: "/data/shared/Datasets/AV-Deepfake1M-PlusPlus"
+    weight: 1.0
+    use_segment_labels: false
+    fps: 25
+    sample_rate: 16000
+  
+  deepspeak:
+    enabled: true
+    path: "/data/shared/Datasets/DeepspeakV2"
+    weight: 1.0
+    fps: 25
+    sample_rate: 16000
+
+
+preprocessing:
+  video:
+    face_detection:
+      face_size: 224
+      device: "cpu"
+      min_face_size: 20
+      confidence_threshold: 0.85
+    extraction:
+      sample_rate: 3
+  
+  audio:
+    extraction:
+      target_sr: 16000
+    segmentation:
+      segment_duration: 4.0
+      overlap: 0.5
+    normalize: true
+
+
+data:
+  video:
+    max_frames: 32
+    min_frames: 32
+    frame_size: 224
+    normalize: true
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+  
+  audio:
+    max_duration: 16.0
+    sample_rate: 16000
+    n_fft: 400
+    hop_length: 160
+    n_mels: 80
+
+  augmentation:
+    enabled: true
+    random_horizontal_flip: 0.5
+    
+    color_jitter:
+      brightness: 0.25        
+      contrast: 0.25             
+      saturation: 0.15       
+      hue: 0.1              
+      p: 0.6                    
+    
+    random_rotation: 12 
+    random_rotation_p: 0.3    
+    random_grayscale: 0.15      
+    gaussian_blur: 0.25      
+    
+    jpeg_compression:
+      enabled: true
+      quality_lower: 70        
+      quality_upper: 100
+      p: 0.4                    
+    
+    random_crop:
+      enabled: true
+      scale: [0.90, 1.0]       
+      p: 0.2            
+
+
+training:
+  batch_size: 2
+  num_epochs: 20
+  num_workers: 20
+  gradient_accumulation_steps: 32
+  
+  modality:
+    video_enabled: true
+    audio_enabled: true
+  
+  staged_training:
+    enabled: false
+  
+  modality_dropout:
+    enabled: false
+  
+  optimizer:
+    video:
+      type: "sgd"
+      lr: 0.001
+      momentum: 0.9
+      weight_decay: 0.0002
+    
+    audio:
+      type: "adamw"
+      lr: 8.0e-05
+      weight_decay: 0.12
+      betas: [0.9, 0.999]
+    
+    fusion:
+      type: "adamw"
+      lr: 0.0005
+      weight_decay: 0.08
+      betas: [0.9, 0.999]
+  
+  scheduler:
+    video:
+      type: "step"          
+      step_size: 5
+      gamma: 0.3
+    
+    audio:
+      type: "cosine_warmup"
+      num_warmup_steps: 300
+      num_training_steps: 2000
+    
+    fusion:
+      type: "cosine_warmup"
+      num_warmup_steps: 300
+      num_training_steps: 2000
+  
+  loss:
+    type: "cross_entropy"     
+    class_weights: "auto"
+    label_smoothing: 0.2
+    auxiliary:                
+      enabled: true
+      alpha: 0.6
+      beta: 0.2
+      gamma: 0.2
+  
+  gradient_clip: 1.0
+  use_amp: true 
+  device: "cuda"
+
+
+segment_level:
+  enabled: false
+
+
+evaluation:
+  metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1"
+    - "auc"
+    - "uar"
+  eval_every_n_epochs: 1
+  save_best_metric: "uar"
+  save_best_mode: "max"
+
+
+logging:
+  use_tensorboard: true
+  tensorboard_dir: "/data/shared/ali/deepfake/logs/tensorboard/phase1_resnet_lstm"
+  use_wandb: false
+  log_every_n_steps: 50
+
+
+checkpointing:
+  save_dir: "/data/shared/ali/deepfake/checkpoints/phase1_resnet_lstm"
+  save_every_n_epochs: 1
+  keep_last_n: 20
+  save_best_fusion: true
+  save_best_video: false
+  save_best_audio: false
+
+
+system:
+  cudnn_benchmark: true
+  cudnn_deterministic: false
+  pin_memory: true
+  empty_cache_every_n_steps: 100
+================================================================================
+END OF CONFIGURATION
+================================================================================
+
+Loading DeepSpeak from SHARDED CACHE: /data/shared/ali/deepfake-detection/cache_sharded
+Loaded 13241 cached deepspeak samples (train) from 2 shards
+Train distribution - Real: 7477, Fake: 5764
+Loaded 3279 cached deepspeak samples (val) from 1 shards
+Val distribution - Real: 1863, Fake: 1416
+Total: 13241 train samples, 3279 val samples
+
+Dataset Info:
+ Train: 13241 samples
+ Val: 3279 samples
+
+============================================================
+Setting up model for phase: phase1
+============================================================
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+   Audio: Unfrozen last 2/12 encoder layers
+
+ MODEL ARCHITECTURE:
+   Phase: phase1
+   Total params: 124,048,582
+   Trainable: 35,286,790
+   Video: 19,928,578/28,494,402
+   Audio: 14,570,498/94,766,466
+   Fusion: 0/0
+   Head: 787,714/787,714
+============================================================
+
+
+   Video Optimizer: SGD lr=0.001
+   Audio Optimizer: AdamW lr=8e-05
+   Fusion+Head Optimizer: AdamW lr=0.0005
+     Fusion params: 0 (ConcatFusion has no learnable params)
+     Head params: 787,714
+     Total optimized: 787,714
+   Video Scheduler: StepLR (step_size=5, gamma=0.3)
+   Audio Scheduler: CosineWarmup (warmup=300, total=2000)
+   Fusion Scheduler: CosineWarmup (warmup=300, total=2000)
+   Calculating automatic class weights:
+   Loss: CrossEntropyLoss with AUTO weights
+   Real: 7477, Fake: 5764 (Ratio: 1.30:1)
+   Weights: Real=0.8854, Fake=1.1486
+   Label Smoothing: 0.2
+   Video Augmentation: 7 transforms enabled
+\ TensorBoard logs: /data/shared/ali/deepfake/logs/tensorboard/phase1_resnet_lstm/phase1_resnet_lstm_baseline_bs2_vlr0.001_alr8e-05_20260116_164231
+
+Starting Phase 1 Training
+   Epochs: 20
+   Device: cuda
+   AMP: True
+
+============================================================
+Epoch 1/20
+============================================================
+
+============================================================
+DEBUG Epoch 1, Batch 0:
+
+  INPUT SHAPES:
+    Video features: torch.Size([2, 3, 32, 224, 224])
+       Batch=2, Channels=3, Frames=32, Height=224, Width=224
+       Total video duration: 1.28s @ 25fps
+    Audio features: torch.Size([2, 5, 64000])
+       Batch=2, Segments=5, Samples/segment=64000
+       Segment duration: 4.00s @ 16kHz
+       Total audio duration: ~20.00s
+    Video masks: torch.Size([2, 32])
+    Audio masks: torch.Size([2, 5])
+
+  LOGITS STATISTICS:
+    Video logits: shape=torch.Size([2, 2]), range=[-0.03, -0.01], std=0.0133
+    Audio logits: shape=torch.Size([2, 2]), range=[-0.01, 0.09], std=0.0430
+    Fusion logits: shape=torch.Size([2, 2]), range=[-0.04, 0.04], std=0.0408
+
+  LOSSES:
+    Fusion loss: 0.7406
+    Video loss:  0.7136
+    Audio loss:  0.6990
+    Total loss:  0.7269
+    Weights: alpha=0.6, beta=0.2, gamma=0.2
+
+  FEATURE DIMENSIONS:
+    Video features: 512
+    Audio features: 768
+    Fusion features: 1280
+============================================================
+
+  Gradients: video=0.000120, audio=0.000002, fusion=0.000184
+
+Epoch 1 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.001, 0.558]
+    Mean: -0.139, Std: 0.724
+  Audio Logits (last batch):
+    Range: [-0.731, 0.770]
+    Mean: 0.054, Std: 0.748
+  Fusion Logits (last batch):
+    Range: [-1.242, 1.604]
+    Mean: 0.070, Std: 1.320
+  Average Losses:
+    Total: 0.5916
+    Fusion: 0.5734 (alpha=0.6)
+    Video:  0.6385 (beta=0.2)
+    Audio:  0.5994 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.001000
+  Audio:  0.000065
+  Fusion: 0.000408
+
+Train:
+  Metrics:
+  Accuracy (ACC):  77.98%
+  UAR:             77.54%
+  WA-F1:           77.97%
+  AUC:             0.8565
+  Precision:       0.7500
+  Recall:          0.7413
+  F1-Score:        0.7457
+  Recall (Real):   0.8095
+  Recall (Fake):   0.7413
+  CM: [[6052, 1424], [1491, 4273]]
+
+Epoch 1 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.517, 0.420]
+    Mean: -0.049, Std: 0.663
+    Class 0: 0.420, Class 1: -0.517
+  Average Loss: 0.5666
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  81.34%
+  UAR:             82.31%
+  WA-F1:           81.41%
+  AUC:             0.9071
+  Precision:       0.7324
+  Recall:          0.8948
+  F1-Score:        0.8055
+  Recall (Real):   0.7515
+  Recall (Fake):   0.8948
+  CM: [[1400, 463], [149, 1267]]
+
+   New best model. uar: 0.8231
+
+============================================================
+Epoch 2/20
+============================================================
+
+============================================================
+DEBUG Epoch 2, Batch 0:
+
+  INPUT SHAPES:
+    Video features: torch.Size([2, 3, 32, 224, 224])
+       Batch=2, Channels=3, Frames=32, Height=224, Width=224
+       Total video duration: 1.28s @ 25fps
+    Audio features: torch.Size([2, 11, 64000])
+       Batch=2, Segments=11, Samples/segment=64000
+       Segment duration: 4.00s @ 16kHz
+       Total audio duration: ~44.00s
+    Video masks: torch.Size([2, 32])
+    Audio masks: torch.Size([2, 11])
+
+  LOGITS STATISTICS:
+    Video logits: shape=torch.Size([2, 2]), range=[-0.77, 0.75], std=0.6206
+    Audio logits: shape=torch.Size([2, 2]), range=[-0.42, 0.54], std=0.3931
+    Fusion logits: shape=torch.Size([2, 2]), range=[-0.79, 0.92], std=0.9702
+
+  LOSSES:
+    Fusion loss: 1.6881
+    Video loss:  1.1204
+    Audio loss:  0.9377
+    Total loss:  1.4245
+    Weights: alpha=0.6, beta=0.2, gamma=0.2
+
+  FEATURE DIMENSIONS:
+    Video features: 512
+    Audio features: 768
+    Fusion features: 1280
+============================================================
+
+  Gradients: video=0.000277, audio=0.000046, fusion=0.000040
+
+Epoch 2 Training Summary:
+  Video Logits (last batch):
+    Range: [-0.780, 0.886]
+    Mean: -0.016, Std: 0.857
+  Audio Logits (last batch):
+    Range: [-0.788, 0.732]
+    Mean: -0.003, Std: 0.762
+  Fusion Logits (last batch):
+    Range: [-1.050, 0.969]
+    Mean: -0.036, Std: 1.107
+  Average Losses:
+    Total: 0.5284
+    Fusion: 0.5032 (alpha=0.6)
+    Video:  0.5736 (beta=0.2)
+    Audio:  0.5587 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.001000
+  Audio:  0.000054
+  Fusion: 0.000336
+
+Train:
+  Metrics:
+  Accuracy (ACC):  86.32%
+  UAR:             86.07%
+  WA-F1:           86.32%
+  AUC:             0.9237
+  Precision:       0.8440
+  Recall:          0.8413
+  F1-Score:        0.8426
+  Recall (Real):   0.8801
+  Recall (Fake):   0.8413
+  CM: [[6580, 896], [915, 4849]]
+
+Epoch 2 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-1.328, 1.084]
+    Mean: -0.122, Std: 1.705
+    Class 0: 1.084, Class 1: -1.328
+  Average Loss: 0.5473
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  84.84%
+  UAR:             83.05%
+  WA-F1:           84.42%
+  AUC:             0.9372
+  Precision:       0.9331
+  Recall:          0.6992
+  F1-Score:        0.7994
+  Recall (Real):   0.9619
+  Recall (Fake):   0.6992
+  CM: [[1792, 71], [426, 990]]
+
+   New best model. uar: 0.8305
+
+============================================================
+Epoch 3/20
+============================================================
+
+============================================================
+DEBUG Epoch 3, Batch 0:
+
+  INPUT SHAPES:
+    Video features: torch.Size([2, 3, 32, 224, 224])
+       Batch=2, Channels=3, Frames=32, Height=224, Width=224
+       Total video duration: 1.28s @ 25fps
+    Audio features: torch.Size([2, 17, 64000])
+       Batch=2, Segments=17, Samples/segment=64000
+       Segment duration: 4.00s @ 16kHz
+       Total audio duration: ~68.00s
+    Video masks: torch.Size([2, 32])
+    Audio masks: torch.Size([2, 17])
+
+  LOGITS STATISTICS:
+    Video logits: shape=torch.Size([2, 2]), range=[-1.09, 1.02], std=1.0605
+    Audio logits: shape=torch.Size([2, 2]), range=[-0.59, 0.58], std=0.4817
+    Fusion logits: shape=torch.Size([2, 2]), range=[-1.73, 1.33], std=1.4570
+
+  LOSSES:
+    Fusion loss: 0.3556
+    Video loss:  0.3348
+    Audio loss:  0.5510
+    Total loss:  0.3905
+    Weights: alpha=0.6, beta=0.2, gamma=0.2
+
+  FEATURE DIMENSIONS:
+    Video features: 512
+    Audio features: 768
+    Fusion features: 1280
+============================================================
+
+  Gradients: video=0.000048, audio=0.000051, fusion=0.000020
+
+Epoch 3 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.025, 0.806]
+    Mean: -0.113, Std: 0.966
+  Audio Logits (last batch):
+    Range: [-1.238, 1.153]
+    Mean: -0.006, Std: 0.982
+  Fusion Logits (last batch):
+    Range: [-0.859, 1.740]
+    Mean: 0.301, Std: 1.226
+  Average Losses:
+    Total: 0.4939
+    Fusion: 0.4654 (alpha=0.6)
+    Video:  0.5358 (beta=0.2)
+    Audio:  0.5374 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.001000
+  Audio:  0.000041
+  Fusion: 0.000255
+
+Train:
+  Metrics:
+  Accuracy (ACC):  89.76%
+  UAR:             89.63%
+  WA-F1:           89.76%
+  AUC:             0.9486
+  Precision:       0.8793
+  Recall:          0.8864
+  F1-Score:        0.8828
+  Recall (Real):   0.9062
+  Recall (Fake):   0.8864
+  CM: [[6775, 701], [655, 5109]]
+
+Epoch 3 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.588, 1.122]
+    Mean: 0.267, Std: 1.209
+    Class 0: 1.122, Class 1: -0.588
+  Average Loss: 0.5032
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  87.01%
+  UAR:             85.99%
+  WA-F1:           86.86%
+  AUC:             0.9156
+  Precision:       0.9011
+  Recall:          0.7853
+  F1-Score:        0.8392
+  Recall (Real):   0.9345
+  Recall (Fake):   0.7853
+  CM: [[1741, 122], [304, 1112]]
+
+   New best model. uar: 0.8599
+
+============================================================
+Epoch 4/20
+============================================================
+
+Epoch 4 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.450, 1.337]
+    Mean: -0.085, Std: 1.277
+  Audio Logits (last batch):
+    Range: [-1.280, 1.367]
+    Mean: 0.061, Std: 1.132
+  Fusion Logits (last batch):
+    Range: [-1.579, 1.653]
+    Mean: 0.053, Std: 1.544
+  Average Losses:
+    Total: 0.4715
+    Fusion: 0.4430 (alpha=0.6)
+    Video:  0.5054 (beta=0.2)
+    Audio:  0.5234 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.001000
+  Audio:  0.000028
+  Fusion: 0.000173
+
+Train:
+  Metrics:
+  Accuracy (ACC):  91.77%
+  UAR:             91.61%
+  WA-F1:           91.77%
+  AUC:             0.9611
+  Precision:       0.9074
+  Recall:          0.9032
+  F1-Score:        0.9053
+  Recall (Real):   0.9290
+  Recall (Fake):   0.9032
+  CM: [[6945, 531], [558, 5206]]
+
+Epoch 4 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.940, 1.236]
+    Mean: 0.148, Std: 1.539
+    Class 0: 1.236, Class 1: -0.940
+  Average Loss: 0.4891
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  88.62%
+  UAR:             88.68%
+  WA-F1:           88.65%
+  AUC:             0.9515
+  Precision:       0.8521
+  Recall:          0.8912
+  F1-Score:        0.8712
+  Recall (Real):   0.8824
+  Recall (Fake):   0.8912
+  CM: [[1644, 219], [154, 1262]]
+
+   New best model. uar: 0.8868
+
+============================================================
+Epoch 5/20
+============================================================
+
+Epoch 5 Training Summary:
+  Video Logits (last batch):
+    Range: [-0.947, 0.729]
+    Mean: -0.026, Std: 0.878
+  Audio Logits (last batch):
+    Range: [-1.342, 1.675]
+    Mean: 0.072, Std: 1.373
+  Fusion Logits (last batch):
+    Range: [-1.456, 1.469]
+    Mean: 0.097, Std: 1.411
+  Average Losses:
+    Total: 0.4485
+    Fusion: 0.4196 (alpha=0.6)
+    Video:  0.4754 (beta=0.2)
+    Audio:  0.5080 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000300
+  Audio:  0.000016
+  Fusion: 0.000099
+
+Train:
+  Metrics:
+  Accuracy (ACC):  93.72%
+  UAR:             93.59%
+  WA-F1:           93.71%
+  AUC:             0.9722
+  Precision:       0.9292
+  Recall:          0.9263
+  F1-Score:        0.9277
+  Recall (Real):   0.9456
+  Recall (Fake):   0.9263
+  CM: [[7069, 407], [425, 5339]]
+
+Epoch 5 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.964, 1.177]
+    Mean: 0.106, Std: 1.514
+    Class 0: 1.177, Class 1: -0.964
+  Average Loss: 0.4689
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  89.97%
+  UAR:             89.90%
+  WA-F1:           89.98%
+  AUC:             0.9642
+  Precision:       0.8761
+  Recall:          0.8941
+  F1-Score:        0.8850
+  Recall (Real):   0.9039
+  Recall (Fake):   0.8941
+  CM: [[1684, 179], [150, 1266]]
+
+   New best model. uar: 0.8990
+
+============================================================
+Epoch 6/20
+============================================================
+
+Epoch 6 Training Summary:
+  Video Logits (last batch):
+    Range: [-0.995, 1.025]
+    Mean: 0.005, Std: 1.105
+  Audio Logits (last batch):
+    Range: [-1.308, 1.623]
+    Mean: 0.063, Std: 1.401
+  Fusion Logits (last batch):
+    Range: [-1.407, 1.531]
+    Mean: -0.063, Std: 1.465
+  Average Losses:
+    Total: 0.4189
+    Fusion: 0.3888 (alpha=0.6)
+    Video:  0.4360 (beta=0.2)
+    Audio:  0.4918 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000300
+  Audio:  0.000007
+  Fusion: 0.000042
+
+Train:
+  Metrics:
+  Accuracy (ACC):  96.07%
+  UAR:             95.99%
+  WA-F1:           96.07%
+  AUC:             0.9853
+  Precision:       0.9565
+  Recall:          0.9531
+  F1-Score:        0.9548
+  Recall (Real):   0.9666
+  Recall (Fake):   0.9531
+  CM: [[7227, 250], [270, 5493]]
+
+Epoch 6 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-1.006, 1.040]
+    Mean: 0.017, Std: 1.447
+    Class 0: 1.040, Class 1: -1.006
+  Average Loss: 0.4634
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  90.76%
+  UAR:             91.05%
+  WA-F1:           90.79%
+  AUC:             0.9634
+  Precision:       0.8644
+  Recall:          0.9322
+  F1-Score:        0.8970
+  Recall (Real):   0.8889
+  Recall (Fake):   0.9322
+  CM: [[1656, 207], [96, 1320]]
+
+   New best model. uar: 0.9105
+
+============================================================
+Epoch 7/20
+============================================================
+
+Epoch 7 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.356, 1.497]
+    Mean: -0.001, Std: 1.354
+  Audio Logits (last batch):
+    Range: [-0.845, 0.754]
+    Mean: -0.033, Std: 0.699
+  Fusion Logits (last batch):
+    Range: [-1.149, 1.081]
+    Mean: 0.062, Std: 1.187
+  Average Losses:
+    Total: 0.4103
+    Fusion: 0.3820 (alpha=0.6)
+    Video:  0.4238 (beta=0.2)
+    Audio:  0.4817 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000300
+  Audio:  0.000001
+  Fusion: 0.000008
+
+Train:
+  Metrics:
+  Accuracy (ACC):  96.73%
+  UAR:             96.63%
+  WA-F1:           96.73%
+  AUC:             0.9866
+  Precision:       0.9659
+  Recall:          0.9587
+  F1-Score:        0.9623
+  Recall (Real):   0.9739
+  Recall (Fake):   0.9587
+  CM: [[7281, 195], [238, 5526]]
+
+Epoch 7 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.948, 1.103]
+    Mean: 0.078, Std: 1.450
+    Class 0: 1.103, Class 1: -0.948
+  Average Loss: 0.4555
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  91.25%
+  UAR:             91.92%
+  WA-F1:           91.29%
+  AUC:             0.9733
+  Precision:       0.8500
+  Recall:          0.9682
+  F1-Score:        0.9052
+  Recall (Real):   0.8701
+  Recall (Fake):   0.9682
+  CM: [[1621, 242], [45, 1371]]
+
+   New best model. uar: 0.9192
+
+============================================================
+Epoch 8/20
+============================================================
+
+Epoch 8 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.336, 1.387]
+    Mean: -0.011, Std: 1.117
+  Audio Logits (last batch):
+    Range: [-1.284, 1.504]
+    Mean: 0.087, Std: 1.254
+  Fusion Logits (last batch):
+    Range: [-1.205, 1.385]
+    Mean: 0.036, Std: 1.163
+  Average Losses:
+    Total: 0.4039
+    Fusion: 0.3763 (alpha=0.6)
+    Video:  0.4172 (beta=0.2)
+    Audio:  0.4733 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000300
+  Audio:  0.000000
+  Fusion: 0.000001
+
+Train:
+  Metrics:
+  Accuracy (ACC):  97.09%
+  UAR:             97.01%
+  WA-F1:           97.09%
+  AUC:             0.9886
+  Precision:       0.9696
+  Recall:          0.9634
+  F1-Score:        0.9665
+  Recall (Real):   0.9767
+  Recall (Fake):   0.9634
+  CM: [[7302, 174], [211, 5553]]
+
+Epoch 8 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.981, 0.981]
+    Mean: -0.000, Std: 1.387
+    Class 0: 0.981, Class 1: -0.981
+  Average Loss: 0.4421
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  91.98%
+  UAR:             92.37%
+  WA-F1:           92.01%
+  AUC:             0.9800
+  Precision:       0.8731
+  Recall:          0.9527
+  F1-Score:        0.9112
+  Recall (Real):   0.8948
+  Recall (Fake):   0.9527
+  CM: [[1667, 196], [67, 1349]]
+
+   New best model. uar: 0.9237
+
+============================================================
+Epoch 9/20
+============================================================
+
+Epoch 9 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.084, 0.917]
+    Mean: -0.050, Std: 1.033
+  Audio Logits (last batch):
+    Range: [-0.907, 0.919]
+    Mean: -0.019, Std: 0.957
+  Fusion Logits (last batch):
+    Range: [-0.852, 0.899]
+    Mean: 0.012, Std: 0.936
+  Average Losses:
+    Total: 0.3996
+    Fusion: 0.3726 (alpha=0.6)
+    Video:  0.4137 (beta=0.2)
+    Audio:  0.4665 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000300
+  Audio:  0.000003
+  Fusion: 0.000020
+
+Train:
+  Metrics:
+  Accuracy (ACC):  97.34%
+  UAR:             97.28%
+  WA-F1:           97.34%
+  AUC:             0.9907
+  Precision:       0.9709
+  Recall:          0.9679
+  F1-Score:        0.9694
+  Recall (Real):   0.9777
+  Recall (Fake):   0.9679
+  CM: [[7309, 167], [185, 5579]]
+
+Epoch 9 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.939, 0.993]
+    Mean: 0.027, Std: 1.366
+    Class 0: 0.993, Class 1: -0.939
+  Average Loss: 0.4513
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  91.28%
+  UAR:             91.71%
+  WA-F1:           91.31%
+  AUC:             0.9732
+  Precision:       0.8631
+  Recall:          0.9484
+  F1-Score:        0.9038
+  Recall (Real):   0.8857
+  Recall (Fake):   0.9484
+  CM: [[1650, 213], [73, 1343]]
+
+============================================================
+Epoch 10/20
+============================================================
+
+Epoch 10 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.186, 1.203]
+    Mean: 0.012, Std: 1.286
+  Audio Logits (last batch):
+    Range: [-1.063, 1.336]
+    Mean: 0.071, Std: 0.993
+  Fusion Logits (last batch):
+    Range: [-0.985, 1.251]
+    Mean: 0.099, Std: 1.199
+  Average Losses:
+    Total: 0.3939
+    Fusion: 0.3685 (alpha=0.6)
+    Video:  0.4047 (beta=0.2)
+    Audio:  0.4592 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000090
+  Audio:  0.000010
+  Fusion: 0.000065
+
+Train:
+  Metrics:
+  Accuracy (ACC):  97.61%
+  UAR:             97.56%
+  WA-F1:           97.61%
+  AUC:             0.9925
+  Precision:       0.9732
+  Recall:          0.9717
+  F1-Score:        0.9725
+  Recall (Real):   0.9794
+  Recall (Fake):   0.9717
+  CM: [[7323, 154], [163, 5600]]
+
+Epoch 10 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.968, 0.973]
+    Mean: 0.003, Std: 1.372
+    Class 0: 0.973, Class 1: -0.968
+  Average Loss: 0.4493
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  91.22%
+  UAR:             91.74%
+  WA-F1:           91.25%
+  AUC:             0.9786
+  Precision:       0.8574
+  Recall:          0.9555
+  F1-Score:        0.9038
+  Recall (Real):   0.8792
+  Recall (Fake):   0.9555
+  CM: [[1638, 225], [63, 1353]]
+
+============================================================
+Epoch 11/20
+============================================================
+
+Epoch 11 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.340, 1.703]
+    Mean: 0.120, Std: 1.553
+  Audio Logits (last batch):
+    Range: [-1.013, 1.408]
+    Mean: 0.129, Std: 1.161
+  Fusion Logits (last batch):
+    Range: [-1.256, 1.409]
+    Mean: 0.087, Std: 1.357
+  Average Losses:
+    Total: 0.3876
+    Fusion: 0.3617 (alpha=0.6)
+    Video:  0.3949 (beta=0.2)
+    Audio:  0.4581 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000090
+  Audio:  0.000021
+  Fusion: 0.000130
+
+Train:
+  Metrics:
+  Accuracy (ACC):  98.18%
+  UAR:             98.13%
+  WA-F1:           98.18%
+  AUC:             0.9943
+  Precision:       0.9808
+  Recall:          0.9773
+  F1-Score:        0.9791
+  Recall (Real):   0.9853
+  Recall (Fake):   0.9773
+  CM: [[7366, 110], [131, 5633]]
+
+Epoch 11 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.890, 0.880]
+    Mean: -0.005, Std: 1.251
+    Class 0: 0.880, Class 1: -0.890
+  Average Loss: 0.4680
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  91.09%
+  UAR:             91.80%
+  WA-F1:           91.14%
+  AUC:             0.9481
+  Precision:       0.8465
+  Recall:          0.9696
+  F1-Score:        0.9039
+  Recall (Real):   0.8663
+  Recall (Fake):   0.9696
+  CM: [[1614, 249], [43, 1373]]
+
+============================================================
+Epoch 12/20
+============================================================
+
+Epoch 12 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.198, 1.477]
+    Mean: 0.110, Std: 1.474
+  Audio Logits (last batch):
+    Range: [-0.699, 0.750]
+    Mean: 0.016, Std: 0.613
+  Fusion Logits (last batch):
+    Range: [-1.367, 1.459]
+    Mean: 0.021, Std: 1.413
+  Average Losses:
+    Total: 0.3865
+    Fusion: 0.3611 (alpha=0.6)
+    Video:  0.3947 (beta=0.2)
+    Audio:  0.4548 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000090
+  Audio:  0.000033
+  Fusion: 0.000209
+
+Train:
+  Metrics:
+  Accuracy (ACC):  98.19%
+  UAR:             98.14%
+  WA-F1:           98.19%
+  AUC:             0.9944
+  Precision:       0.9812
+  Recall:          0.9773
+  F1-Score:        0.9792
+  Recall (Real):   0.9856
+  Recall (Fake):   0.9773
+  CM: [[7369, 108], [131, 5632]]
+
+Epoch 12 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.857, 0.932]
+    Mean: 0.037, Std: 1.265
+    Class 0: 0.932, Class 1: -0.857
+  Average Loss: 0.4553
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  91.95%
+  UAR:             92.53%
+  WA-F1:           91.98%
+  AUC:             0.9531
+  Precision:       0.8623
+  Recall:          0.9682
+  F1-Score:        0.9122
+  Recall (Real):   0.8824
+  Recall (Fake):   0.9682
+  CM: [[1644, 219], [45, 1371]]
+
+   New best model. uar: 0.9253
+
+============================================================
+Epoch 13/20
+============================================================
+
+Epoch 13 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.011, 1.229]
+    Mean: 0.113, Std: 1.222
+  Audio Logits (last batch):
+    Range: [-1.221, 1.331]
+    Mean: 0.053, Std: 1.177
+  Fusion Logits (last batch):
+    Range: [-1.249, 1.303]
+    Mean: 0.061, Std: 1.351
+  Average Losses:
+    Total: 0.3849
+    Fusion: 0.3602 (alpha=0.6)
+    Video:  0.3931 (beta=0.2)
+    Audio:  0.4509 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000090
+  Audio:  0.000047
+  Fusion: 0.000291
+
+Train:
+  Metrics:
+  Accuracy (ACC):  98.29%
+  UAR:             98.24%
+  WA-F1:           98.29%
+  AUC:             0.9945
+  Precision:       0.9821
+  Recall:          0.9787
+  F1-Score:        0.9804
+  Recall (Real):   0.9862
+  Recall (Fake):   0.9787
+  CM: [[7373, 103], [123, 5641]]
+
+Epoch 13 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.803, 0.906]
+    Mean: 0.052, Std: 1.208
+    Class 0: 0.906, Class 1: -0.803
+  Average Loss: 0.4753
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  91.25%
+  UAR:             91.80%
+  WA-F1:           91.29%
+  AUC:             0.9213
+  Precision:       0.8562
+  Recall:          0.9583
+  F1-Score:        0.9044
+  Recall (Real):   0.8776
+  Recall (Fake):   0.9583
+  CM: [[1635, 228], [59, 1357]]
+
+============================================================
+Epoch 14/20
+============================================================
+
+Epoch 14 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.179, 1.364]
+    Mean: 0.134, Std: 1.324
+  Audio Logits (last batch):
+    Range: [-1.294, 1.060]
+    Mean: -0.053, Std: 1.282
+  Fusion Logits (last batch):
+    Range: [-1.141, 1.210]
+    Mean: 0.026, Std: 1.337
+  Average Losses:
+    Total: 0.3839
+    Fusion: 0.3611 (alpha=0.6)
+    Video:  0.3901 (beta=0.2)
+    Audio:  0.4460 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000090
+  Audio:  0.000059
+  Fusion: 0.000370
+
+Train:
+  Metrics:
+  Accuracy (ACC):  98.24%
+  UAR:             98.20%
+  WA-F1:           98.24%
+  AUC:             0.9945
+  Precision:       0.9804
+  Recall:          0.9792
+  F1-Score:        0.9798
+  Recall (Real):   0.9849
+  Recall (Fake):   0.9792
+  CM: [[7364, 113], [120, 5643]]
+
+Epoch 14 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.981, 0.991]
+    Mean: 0.005, Std: 1.394
+    Class 0: 0.991, Class 1: -0.981
+  Average Loss: 0.5176
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  89.51%
+  UAR:             90.62%
+  WA-F1:           89.55%
+  AUC:             0.9401
+  Precision:       0.8105
+  Recall:          0.9880
+  F1-Score:        0.8905
+  Recall (Real):   0.8245
+  Recall (Fake):   0.9880
+  CM: [[1536, 327], [17, 1399]]
+
+============================================================
+Epoch 15/20
+============================================================
+
+Epoch 15 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.181, 1.009]
+    Mean: -0.049, Std: 0.954
+  Audio Logits (last batch):
+    Range: [-0.890, 0.801]
+    Mean: -0.011, Std: 0.742
+  Fusion Logits (last batch):
+    Range: [-1.117, 1.171]
+    Mean: 0.011, Std: 1.112
+  Average Losses:
+    Total: 0.3841
+    Fusion: 0.3604 (alpha=0.6)
+    Video:  0.3903 (beta=0.2)
+    Audio:  0.4488 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000027
+  Audio:  0.000070
+  Fusion: 0.000435
+
+Train:
+  Metrics:
+  Accuracy (ACC):  98.37%
+  UAR:             98.33%
+  WA-F1:           98.37%
+  AUC:             0.9939
+  Precision:       0.9823
+  Recall:          0.9802
+  F1-Score:        0.9812
+  Recall (Real):   0.9864
+  Recall (Fake):   0.9802
+  CM: [[7374, 102], [114, 5650]]
+
+Epoch 15 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-1.003, 0.976]
+    Mean: -0.014, Std: 1.399
+    Class 0: 0.976, Class 1: -1.003
+  Average Loss: 0.4293
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  92.19%
+  UAR:             92.69%
+  WA-F1:           92.23%
+  AUC:             0.9788
+  Precision:       0.8699
+  Recall:          0.9633
+  F1-Score:        0.9142
+  Recall (Real):   0.8905
+  Recall (Fake):   0.9633
+  CM: [[1659, 204], [52, 1364]]
+
+   New best model. uar: 0.9269
+
+============================================================
+Epoch 16/20
+============================================================
+
+Epoch 16 Training Summary:
+  Video Logits (last batch):
+    Range: [-0.900, 0.995]
+    Mean: 0.032, Std: 1.056
+  Audio Logits (last batch):
+    Range: [-0.785, 1.112]
+    Mean: 0.106, Std: 1.008
+  Fusion Logits (last batch):
+    Range: [-1.215, 1.334]
+    Mean: 0.050, Std: 1.215
+  Average Losses:
+    Total: 0.3818
+    Fusion: 0.3588 (alpha=0.6)
+    Video:  0.3890 (beta=0.2)
+    Audio:  0.4438 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000027
+  Audio:  0.000077
+  Fusion: 0.000480
+
+Train:
+  Metrics:
+  Accuracy (ACC):  98.46%
+  UAR:             98.42%
+  WA-F1:           98.46%
+  AUC:             0.9949
+  Precision:       0.9836
+  Recall:          0.9809
+  F1-Score:        0.9823
+  Recall (Real):   0.9874
+  Recall (Fake):   0.9809
+  CM: [[7383, 94], [110, 5653]]
+
+Epoch 16 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.813, 0.845]
+    Mean: 0.016, Std: 1.173
+    Class 0: 0.845, Class 1: -0.813
+  Average Loss: 0.4513
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  91.89%
+  UAR:             92.53%
+  WA-F1:           91.92%
+  AUC:             0.9676
+  Precision:       0.8585
+  Recall:          0.9725
+  F1-Score:        0.9119
+  Recall (Real):   0.8782
+  Recall (Fake):   0.9725
+  CM: [[1636, 227], [39, 1377]]
+
+============================================================
+Epoch 17/20
+============================================================
+
+Epoch 17 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.021, 0.947]
+    Mean: -0.007, Std: 1.047
+  Audio Logits (last batch):
+    Range: [-0.924, 0.953]
+    Mean: 0.019, Std: 1.067
+  Fusion Logits (last batch):
+    Range: [-1.102, 1.138]
+    Mean: 0.019, Std: 1.181
+  Average Losses:
+    Total: 0.3810
+    Fusion: 0.3582 (alpha=0.6)
+    Video:  0.3884 (beta=0.2)
+    Audio:  0.4417 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000027
+  Audio:  0.000080
+  Fusion: 0.000499
+
+Train:
+  Metrics:
+  Accuracy (ACC):  98.47%
+  UAR:             98.44%
+  WA-F1:           98.47%
+  AUC:             0.9951
+  Precision:       0.9828
+  Recall:          0.9821
+  F1-Score:        0.9825
+  Recall (Real):   0.9868
+  Recall (Fake):   0.9821
+  CM: [[7377, 99], [103, 5661]]
+
+Epoch 17 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.934, 0.969]
+    Mean: 0.018, Std: 1.346
+    Class 0: 0.969, Class 1: -0.934
+  Average Loss: 0.4505
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  91.74%
+  UAR:             92.18%
+  WA-F1:           91.77%
+  AUC:             0.9795
+  Precision:       0.8672
+  Recall:          0.9548
+  F1-Score:        0.9089
+  Recall (Real):   0.8889
+  Recall (Fake):   0.9548
+  CM: [[1656, 207], [64, 1352]]
+
+============================================================
+Epoch 18/20
+============================================================
+
+Epoch 18 Training Summary:
+  Video Logits (last batch):
+    Range: [-0.972, 0.848]
+    Mean: -0.089, Std: 1.017
+  Audio Logits (last batch):
+    Range: [-1.123, 1.315]
+    Mean: 0.035, Std: 1.276
+  Fusion Logits (last batch):
+    Range: [-1.223, 1.287]
+    Mean: 0.025, Std: 1.290
+  Average Losses:
+    Total: 0.3799
+    Fusion: 0.3570 (alpha=0.6)
+    Video:  0.3871 (beta=0.2)
+    Audio:  0.4413 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000027
+  Audio:  0.000079
+  Fusion: 0.000492
+
+Train:
+  Metrics:
+  Accuracy (ACC):  98.50%
+  UAR:             98.47%
+  WA-F1:           98.50%
+  AUC:             0.9961
+  Precision:       0.9825
+  Recall:          0.9830
+  F1-Score:        0.9827
+  Recall (Real):   0.9865
+  Recall (Fake):   0.9830
+  CM: [[7375, 101], [98, 5666]]
+
+Epoch 18 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.965, 0.968]
+    Mean: 0.002, Std: 1.366
+    Class 0: 0.968, Class 1: -0.965
+  Average Loss: 0.4410
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  92.53%
+  UAR:             93.03%
+  WA-F1:           92.56%
+  AUC:             0.9828
+  Precision:       0.8732
+  Recall:          0.9675
+  F1-Score:        0.9179
+  Recall (Real):   0.8932
+  Recall (Fake):   0.9675
+  CM: [[1664, 199], [46, 1370]]
+
+   New best model. uar: 0.9303
+
+============================================================
+Epoch 19/20
+============================================================
+
+Epoch 19 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.252, 1.500]
+    Mean: 0.043, Std: 1.303
+  Audio Logits (last batch):
+    Range: [-1.290, 1.080]
+    Mean: -0.043, Std: 1.277
+  Fusion Logits (last batch):
+    Range: [-1.233, 1.256]
+    Mean: 0.011, Std: 1.197
+  Average Losses:
+    Total: 0.3787
+    Fusion: 0.3564 (alpha=0.6)
+    Video:  0.3873 (beta=0.2)
+    Audio:  0.4374 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000027
+  Audio:  0.000073
+  Fusion: 0.000458
+
+Train:
+  Metrics:
+  Accuracy (ACC):  98.64%
+  UAR:             98.58%
+  WA-F1:           98.64%
+  AUC:             0.9954
+  Precision:       0.9874
+  Recall:          0.9813
+  F1-Score:        0.9843
+  Recall (Real):   0.9904
+  Recall (Fake):   0.9813
+  CM: [[7404, 72], [108, 5656]]
+
+Epoch 19 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.761, 0.763]
+    Mean: 0.001, Std: 1.078
+    Class 0: 0.763, Class 1: -0.761
+  Average Loss: 0.4437
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  92.56%
+  UAR:             93.04%
+  WA-F1:           92.59%
+  AUC:             0.9804
+  Precision:       0.8747
+  Recall:          0.9661
+  F1-Score:        0.9181
+  Recall (Real):   0.8948
+  Recall (Fake):   0.9661
+  CM: [[1667, 196], [48, 1368]]
+
+   New best model. uar: 0.9304
+
+============================================================
+Epoch 20/20
+============================================================
+
+Epoch 20 Training Summary:
+  Video Logits (last batch):
+    Range: [-1.215, 1.225]
+    Mean: -0.022, Std: 1.348
+  Audio Logits (last batch):
+    Range: [-0.848, 0.875]
+    Mean: 0.029, Std: 0.938
+  Fusion Logits (last batch):
+    Range: [-1.240, 1.285]
+    Mean: 0.019, Std: 1.285
+  Average Losses:
+    Total: 0.3797
+    Fusion: 0.3570 (alpha=0.6)
+    Video:  0.3880 (beta=0.2)
+    Audio:  0.4394 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000008
+  Audio:  0.000064
+  Fusion: 0.000401
+
+Train:
+  Metrics:
+  Accuracy (ACC):  98.46%
+  UAR:             98.43%
+  WA-F1:           98.46%
+  AUC:             0.9956
+  Precision:       0.9828
+  Recall:          0.9818
+  F1-Score:        0.9823
+  Recall (Real):   0.9868
+  Recall (Fake):   0.9818
+  CM: [[7378, 99], [105, 5658]]
+
+Epoch 20 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-0.967, 0.973]
+    Mean: 0.003, Std: 1.372
+    Class 0: 0.973, Class 1: -0.967
+  Average Loss: 0.4553
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  91.64%
+  UAR:             92.37%
+  WA-F1:           91.68%
+  AUC:             0.9510
+  Precision:       0.8516
+  Recall:          0.9767
+  F1-Score:        0.9099
+  Recall (Real):   0.8706
+  Recall (Fake):   0.9767
+  CM: [[1622, 241], [33, 1383]]
+
+Training complete.
+
+================================================================================
+Training Completed
+End Time: 2026-01-17 11:32:19
+================================================================================
+
+
+
+
+(deepfake-detection) ali@studi-gpu-ssh-6c8f57ff57-9j7k8:/data/shared/ali/deepfake$ python evaluation/evaluate.py   --config configs/phase1_resnet_lstm_config.yaml   --checkpoint /data/shared/ali/deepfake/checkpoints/phase1_resnet_lstm/best_model.pth   --mode modality   --split val   --dataset av_deepfake
+
+============================================================
+Setting up model for phase: phase1
+============================================================
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_g', 'encoder.pos_conv_embed.conv.weight_v']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Unfrozen last 2/12 encoder layers
+Model type: Phase1Model
+Model moved to device: cuda
+
+ MODEL INFO:
+   Phase: phase1
+   Total params: 124,048,582
+   Trainable: 35,286,790
+Model set to eval mode
+============================================================
+
+
+============================================================
+Loading checkpoint from: /data/shared/ali/deepfake/checkpoints/phase1_resnet_lstm/best_model.pth
+Checkpoint epoch: 19
+Checkpoint loaded successfully
+============================================================
+
+
+================================================================================
+MODALITY SEPARATE EVALUATION (val set)
+Dataset filter: av_deepfake
+================================================================================
+
+Loading av_deepfake val from SHARDED CACHE: /data/shared/ali/deepfake-detection/cache_sharded
+Loaded 77264 cached av_deepfake samples (val) from 8 shards
+Val distribution - Real: 20193, Fake: 57071
+INPUT SHAPES:
+  Video features: torch.Size([4, 3, 32, 224, 224])
+  Audio features: torch.Size([4, 4, 64000])
+  Video masks: torch.Size([4, 32])
+  Audio masks: torch.Size([4, 4])
+
+VIDEO EVALUATION DEBUG (ResNetLSTM):
+  Aggregated features shape: torch.Size([4, 512])
+  Logits shape: torch.Size([4, 2])
+  Logits range: [-1.10, 1.23]
+  Logits std: 1.2270
+
+AUDIO EVALUATION DEBUG:
+  Segment features shape: torch.Size([4, 4, 768])
+  Aggregated features shape: torch.Size([4, 768])
+  Logits shape: torch.Size([4, 2])
+  Logits range: [-1.07, 1.20]
+  Logits std: 0.9353
+
+FUSION EVALUATION DEBUG:
+  Logits shape: torch.Size([4, 2])
+  Logits range: [-1.42, 1.46]
+  Logits std: 1.3539
+
+FIRST BATCH PREDICTIONS (first 5 samples):
+  Labels:  [1, 1, 0, 1]
+  Video:   [1, 1, 1, 1]
+  Audio:   [0, 1, 1, 1]
+  Fusion:  [1, 1, 1, 1]
+
+Processed 50/19316 batches
+Processed 100/19316 batches
+Processed 150/19316 batches
+Processed 200/19316 batches
+Processed 250/19316 batches
+Processed 300/19316 batches
+Processed 350/19316 batches
+Processed 400/19316 batches
+Processed 450/19316 batches
+Processed 500/19316 batches
+Processed 550/19316 batches
+Processed 600/19316 batches
+Processed 650/19316 batches
+Processed 700/19316 batches
+Processed 750/19316 batches
+Processed 800/19316 batches
+Processed 850/19316 batches
+Processed 900/19316 batches
+Processed 950/19316 batches
+Processed 1000/19316 batches
+Processed 1050/19316 batches
+Processed 1100/19316 batches
+Processed 1150/19316 batches
+Processed 1200/19316 batches
+Processed 1250/19316 batches
+Processed 1300/19316 batches
+Processed 1350/19316 batches
+Processed 1400/19316 batches
+Processed 1450/19316 batches
+Processed 1500/19316 batches
+Processed 1550/19316 batches
+Processed 1600/19316 batches
+Processed 1650/19316 batches
+Processed 1700/19316 batches
+Processed 1750/19316 batches
+Processed 1800/19316 batches
+Processed 1850/19316 batches
+Processed 1900/19316 batches
+Processed 1950/19316 batches
+Processed 2000/19316 batches
+Processed 2050/19316 batches
+Processed 2100/19316 batches
+Processed 2150/19316 batches
+Processed 2200/19316 batches
+Processed 2250/19316 batches
+Processed 2300/19316 batches
+Processed 2350/19316 batches
+Processed 2400/19316 batches
+Processed 2450/19316 batches
+Processed 2500/19316 batches
+Processed 2550/19316 batches
+Processed 2600/19316 batches
+Processed 2650/19316 batches
+Processed 2700/19316 batches
+Processed 2750/19316 batches
+Processed 2800/19316 batches
+Processed 2850/19316 batches
+Processed 2900/19316 batches
+Processed 2950/19316 batches
+Processed 3000/19316 batches
+Processed 3050/19316 batches
+Processed 3100/19316 batches
+Processed 3150/19316 batches
+Processed 3200/19316 batches
+Processed 3250/19316 batches
+Processed 3300/19316 batches
+Processed 3350/19316 batches
+Processed 3400/19316 batches
+Processed 3450/19316 batches
+Processed 3500/19316 batches
+Processed 3550/19316 batches
+Processed 3600/19316 batches
+Processed 3650/19316 batches
+Processed 3700/19316 batches
+Processed 3750/19316 batches
+Processed 3800/19316 batches
+Processed 3850/19316 batches
+Processed 3900/19316 batches
+Processed 3950/19316 batches
+Processed 4000/19316 batches
+Processed 4050/19316 batches
+Processed 4100/19316 batches
+Processed 4150/19316 batches
+Processed 4200/19316 batches
+Processed 4250/19316 batches
+Processed 4300/19316 batches
+Processed 4350/19316 batches
+Processed 4400/19316 batches
+Processed 4450/19316 batches
+Processed 4500/19316 batches
+Processed 4550/19316 batches
+Processed 4600/19316 batches
+Processed 4650/19316 batches
+Processed 4700/19316 batches
+Processed 4750/19316 batches
+Processed 4800/19316 batches
+Processed 4850/19316 batches
+Processed 4900/19316 batches
+Processed 4950/19316 batches
+Processed 5000/19316 batches
+Processed 5050/19316 batches
+Processed 5100/19316 batches
+Processed 5150/19316 batches
+Processed 5200/19316 batches
+Processed 5250/19316 batches
+Processed 5300/19316 batches
+Processed 5350/19316 batches
+Processed 5400/19316 batches
+Processed 5450/19316 batches
+Processed 5500/19316 batches
+Processed 5550/19316 batches
+Processed 5600/19316 batches
+Processed 5650/19316 batches
+Processed 5700/19316 batches
+Processed 5750/19316 batches
+Processed 5800/19316 batches
+Processed 5850/19316 batches
+Processed 5900/19316 batches
+Processed 5950/19316 batches
+Processed 6000/19316 batches
+Processed 6050/19316 batches
+Processed 6100/19316 batches
+Processed 6150/19316 batches
+Processed 6200/19316 batches
+Processed 6250/19316 batches
+Processed 6300/19316 batches
+Processed 6350/19316 batches
+Processed 6400/19316 batches
+Processed 6450/19316 batches
+Processed 6500/19316 batches
+Processed 6550/19316 batches
+Processed 6600/19316 batches
+Processed 6650/19316 batches
+Processed 6700/19316 batches
+Processed 6750/19316 batches
+Processed 6800/19316 batches
+Processed 6850/19316 batches
+Processed 6900/19316 batches
+Processed 6950/19316 batches
+Processed 7000/19316 batches
+Processed 7050/19316 batches
+Processed 7100/19316 batches
+Processed 7150/19316 batches
+Processed 7200/19316 batches
+Processed 7250/19316 batches
+Processed 7300/19316 batches
+Processed 7350/19316 batches
+Processed 7400/19316 batches
+Processed 7450/19316 batches
+Processed 7500/19316 batches
+Processed 7550/19316 batches
+Processed 7600/19316 batches
+Processed 7650/19316 batches
+Processed 7700/19316 batches
+Processed 7750/19316 batches
+Processed 7800/19316 batches
+Processed 7850/19316 batches
+Processed 7900/19316 batches
+Processed 7950/19316 batches
+Processed 8000/19316 batches
+Processed 8050/19316 batches
+Processed 8100/19316 batches
+Processed 8150/19316 batches
+Processed 8200/19316 batches
+Processed 8250/19316 batches
+Processed 8300/19316 batches
+Processed 8350/19316 batches
+Processed 8400/19316 batches
+Processed 8450/19316 batches
+Processed 8500/19316 batches
+Processed 8550/19316 batches
+Processed 8600/19316 batches
+Processed 8650/19316 batches
+Processed 8700/19316 batches
+Processed 8750/19316 batches
+Processed 8800/19316 batches
+Processed 8850/19316 batches
+Processed 8900/19316 batches
+Processed 8950/19316 batches
+Processed 9000/19316 batches
+Processed 9050/19316 batches
+Processed 9100/19316 batches
+Processed 9150/19316 batches
+Processed 9200/19316 batches
+Processed 9250/19316 batches
+Processed 9300/19316 batches
+Processed 9350/19316 batches
+Processed 9400/19316 batches
+Processed 9450/19316 batches
+Processed 9500/19316 batches
+Processed 9550/19316 batches
+Processed 9600/19316 batches
+Processed 9650/19316 batches
+Processed 9700/19316 batches
+Processed 9750/19316 batches
+Processed 9800/19316 batches
+Processed 9850/19316 batches
+Processed 9900/19316 batches
+Processed 9950/19316 batches
+Processed 10000/19316 batches
+Processed 10050/19316 batches
+Processed 10100/19316 batches
+Processed 10150/19316 batches
+Processed 10200/19316 batches
+Processed 10250/19316 batches
+Processed 10300/19316 batches
+Processed 10350/19316 batches
+Processed 10400/19316 batches
+Processed 10450/19316 batches
+Processed 10500/19316 batches
+Processed 10550/19316 batches
+Processed 10600/19316 batches
+Processed 10650/19316 batches
+Processed 10700/19316 batches
+Processed 10750/19316 batches
+Processed 10800/19316 batches
+Processed 10850/19316 batches
+Processed 10900/19316 batches
+Processed 10950/19316 batches
+Processed 11000/19316 batches
+Processed 11050/19316 batches
+Processed 11100/19316 batches
+Processed 11150/19316 batches
+Processed 11200/19316 batches
+Processed 11250/19316 batches
+Processed 11300/19316 batches
+Processed 11350/19316 batches
+Processed 11400/19316 batches
+Processed 11450/19316 batches
+Processed 11500/19316 batches
+Processed 11550/19316 batches
+Processed 11600/19316 batches
+Processed 11650/19316 batches
+Processed 11700/19316 batches
+Processed 11750/19316 batches
+Processed 11800/19316 batches
+Processed 11850/19316 batches
+Processed 11900/19316 batches
+Processed 11950/19316 batches
+Processed 12000/19316 batches
+Processed 12050/19316 batches
+Processed 12100/19316 batches
+Processed 12150/19316 batches
+Processed 12200/19316 batches
+Processed 12250/19316 batches
+Processed 12300/19316 batches
+Processed 12350/19316 batches
+Processed 12400/19316 batches
+Processed 12450/19316 batches
+Processed 12500/19316 batches
+Processed 12550/19316 batches
+Processed 12600/19316 batches
+Processed 12650/19316 batches
+Processed 12700/19316 batches
+Processed 12750/19316 batches
+Processed 12800/19316 batches
+Processed 12850/19316 batches
+Processed 12900/19316 batches
+Processed 12950/19316 batches
+Processed 13000/19316 batches
+Processed 13050/19316 batches
+Processed 13100/19316 batches
+Processed 13150/19316 batches
+Processed 13200/19316 batches
+Processed 13250/19316 batches
+Processed 13300/19316 batches
+Processed 13350/19316 batches
+Processed 13400/19316 batches
+Processed 13450/19316 batches
+Processed 13500/19316 batches
+Processed 13550/19316 batches
+Processed 13600/19316 batches
+Processed 13650/19316 batches
+Processed 13700/19316 batches
+Processed 13750/19316 batches
+Processed 13800/19316 batches
+Processed 13850/19316 batches
+Processed 13900/19316 batches
+Processed 13950/19316 batches
+Processed 14000/19316 batches
+Processed 14050/19316 batches
+Processed 14100/19316 batches
+Processed 14150/19316 batches
+Processed 14200/19316 batches
+Processed 14250/19316 batches
+Processed 14300/19316 batches
+Processed 14350/19316 batches
+Processed 14400/19316 batches
+Processed 14450/19316 batches
+Processed 14500/19316 batches
+Processed 14550/19316 batches
+Processed 14600/19316 batches
+Processed 14650/19316 batches
+Processed 14700/19316 batches
+Processed 14750/19316 batches
+Processed 14800/19316 batches
+Processed 14850/19316 batches
+Processed 14900/19316 batches
+Processed 14950/19316 batches
+Processed 15000/19316 batches
+Processed 15050/19316 batches
+Processed 15100/19316 batches
+Processed 15150/19316 batches
+Processed 15200/19316 batches
+Processed 15250/19316 batches
+Processed 15300/19316 batches
+Processed 15350/19316 batches
+Processed 15400/19316 batches
+Processed 15450/19316 batches
+Processed 15500/19316 batches
+Processed 15550/19316 batches
+Processed 15600/19316 batches
+Processed 15650/19316 batches
+Processed 15700/19316 batches
+Processed 15750/19316 batches
+Processed 15800/19316 batches
+Processed 15850/19316 batches
+Processed 15900/19316 batches
+Processed 15950/19316 batches
+Processed 16000/19316 batches
+Processed 16050/19316 batches
+Processed 16100/19316 batches
+Processed 16150/19316 batches
+Processed 16200/19316 batches
+Processed 16250/19316 batches
+Processed 16300/19316 batches
+Processed 16350/19316 batches
+Processed 16400/19316 batches
+Processed 16450/19316 batches
+Processed 16500/19316 batches
+Processed 16550/19316 batches
+Processed 16600/19316 batches
+Processed 16650/19316 batches
+Processed 16700/19316 batches
+Processed 16750/19316 batches
+Processed 16800/19316 batches
+Processed 16850/19316 batches
+Processed 16900/19316 batches
+Processed 16950/19316 batches
+Processed 17000/19316 batches
+Processed 17050/19316 batches
+Processed 17100/19316 batches
+Processed 17150/19316 batches
+Processed 17200/19316 batches
+Processed 17250/19316 batches
+Processed 17300/19316 batches
+Processed 17350/19316 batches
+Processed 17400/19316 batches
+Processed 17450/19316 batches
+Processed 17500/19316 batches
+Processed 17550/19316 batches
+Processed 17600/19316 batches
+Processed 17650/19316 batches
+Processed 17700/19316 batches
+Processed 17750/19316 batches
+Processed 17800/19316 batches
+Processed 17850/19316 batches
+Processed 17900/19316 batches
+Processed 17950/19316 batches
+Processed 18000/19316 batches
+Processed 18050/19316 batches
+Processed 18100/19316 batches
+Processed 18150/19316 batches
+Processed 18200/19316 batches
+Processed 18250/19316 batches
+Processed 18300/19316 batches
+Processed 18350/19316 batches
+Processed 18400/19316 batches
+Processed 18450/19316 batches
+Processed 18500/19316 batches
+Processed 18550/19316 batches
+Processed 18600/19316 batches
+Processed 18650/19316 batches
+Processed 18700/19316 batches
+Processed 18750/19316 batches
+Processed 18800/19316 batches
+Processed 18850/19316 batches
+Processed 18900/19316 batches
+Processed 18950/19316 batches
+Processed 19000/19316 batches
+Processed 19050/19316 batches
+Processed 19100/19316 batches
+Processed 19150/19316 batches
+Processed 19200/19316 batches
+Processed 19250/19316 batches
+Processed 19300/19316 batches
+
+================================================================================
+RESULTS COMPARISON
+================================================================================
+
+VIDEO ONLY:
+  Metrics:
+  Accuracy (ACC):  61.95%
+  UAR:             50.91%
+  WA-F1:           62.02%
+  AUC:             0.5071
+  Precision:       0.7434
+  Recall:          0.7404
+  F1-Score:        0.7419
+  Recall (Real):   0.2777
+  Recall (Fake):   0.7404
+  CM: [[5608, 14585], [14815, 42256]]
+
+AUDIO ONLY (scale=1.0):
+  Metrics:
+  Accuracy (ACC):  66.02%
+  UAR:             51.76%
+  WA-F1:           64.21%
+  AUC:             0.5264
+  Precision:       0.7470
+  Recall:          0.8165
+  F1-Score:        0.7802
+  Recall (Real):   0.2186
+  Recall (Fake):   0.8165
+  CM: [[4415, 15778], [10474, 46597]]
+
+FUSION:
+  Metrics:
+  Accuracy (ACC):  68.25%
+  UAR:             51.09%
+  WA-F1:           64.45%
+  AUC:             0.5291
+  Precision:       0.7435
+  Recall:          0.8704
+  F1-Score:        0.8020
+  Recall (Real):   0.1514
+  Recall (Fake):   0.8704
+  CM: [[3058, 17135], [7397, 49674]]
+
+================================================================================
+SUMMARY
+================================================================================
+  Video ACC:  61.9% | AUC: 0.5071
+  Audio ACC:  66.0% | AUC: 0.5264
+  Fusion ACC: 68.2% | AUC: 0.5291
+  Best modality: AUDIO
+  Fusion improvement: 2.23%
+================================================================================
+
+(deepfake-detection) ali@studi-gpu-ssh-6c8f57ff57-9j7k8:/data/shared/ali/deepfake$ python evaluation/evaluate.py   --config configs/phase1_resnet_lstm_config.yaml   --checkpoint /data/shared/ali/deepfake/checkpoints/phase1_resnet_lstm/best_model.pth   --mode modality   --split val   --dataset deepspeak  
+
+============================================================
+Setting up model for phase: phase1
+============================================================
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_g', 'encoder.pos_conv_embed.conv.weight_v']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Unfrozen last 2/12 encoder layers
+Model type: Phase1Model
+Model moved to device: cuda
+
+ MODEL INFO:
+   Phase: phase1
+   Total params: 124,048,582
+   Trainable: 35,286,790
+Model set to eval mode
+============================================================
+
+
+============================================================
+Loading checkpoint from: /data/shared/ali/deepfake/checkpoints/phase1_resnet_lstm/best_model.pth
+Checkpoint epoch: 19
+Checkpoint loaded successfully
+============================================================
+
+
+================================================================================
+MODALITY SEPARATE EVALUATION (val set)
+Dataset filter: deepspeak
+================================================================================
+
+Loading deepspeak val from SHARDED CACHE: /data/shared/ali/deepfake-detection/cache_sharded
+Loaded 3279 cached deepspeak samples (val) from 1 shards
+Val distribution - Real: 1863, Fake: 1416
+INPUT SHAPES:
+  Video features: torch.Size([4, 3, 32, 224, 224])
+  Audio features: torch.Size([4, 10, 64000])
+  Video masks: torch.Size([4, 32])
+  Audio masks: torch.Size([4, 10])
+
+VIDEO EVALUATION DEBUG (ResNetLSTM):
+  Aggregated features shape: torch.Size([4, 512])
+  Logits shape: torch.Size([4, 2])
+  Logits range: [-1.22, 1.36]
+  Logits std: 1.3578
+
+AUDIO EVALUATION DEBUG:
+  Segment features shape: torch.Size([4, 10, 768])
+  Aggregated features shape: torch.Size([4, 768])
+  Logits shape: torch.Size([4, 2])
+  Logits range: [-1.22, 1.41]
+  Logits std: 1.2418
+
+FUSION EVALUATION DEBUG:
+  Logits shape: torch.Size([4, 2])
+  Logits range: [-1.44, 1.48]
+  Logits std: 1.5184
+
+FIRST BATCH PREDICTIONS (first 5 samples):
+  Labels:  [1, 1, 1, 1]
+  Video:   [1, 1, 1, 1]
+  Audio:   [1, 1, 1, 1]
+  Fusion:  [1, 1, 1, 1]
+
+Processed 50/820 batches
+Processed 100/820 batches
+Processed 150/820 batches
+Processed 200/820 batches
+Processed 250/820 batches
+Processed 300/820 batches
+Processed 350/820 batches
+Processed 400/820 batches
+Processed 450/820 batches
+Processed 500/820 batches
+Processed 550/820 batches
+Processed 600/820 batches
+Processed 650/820 batches
+Processed 700/820 batches
+Processed 750/820 batches
+Processed 800/820 batches
+
+================================================================================
+RESULTS COMPARISON
+================================================================================
+
+VIDEO ONLY:
+  Metrics:
+  Accuracy (ACC):  88.56%
+  UAR:             88.78%
+  WA-F1:           88.60%
+  AUC:             0.9365
+  Precision:       0.8427
+  Recall:          0.9040
+  F1-Score:        0.8722
+  Recall (Real):   0.8717
+  Recall (Fake):   0.9040
+  CM: [[1624, 239], [136, 1280]]
+
+AUDIO ONLY (scale=1.0):
+  Metrics:
+  Accuracy (ACC):  91.25%
+  UAR:             90.38%
+  WA-F1:           91.16%
+  AUC:             0.9659
+  Precision:       0.9512
+  Recall:          0.8404
+  F1-Score:        0.8924
+  Recall (Real):   0.9673
+  Recall (Fake):   0.8404
+  CM: [[1802, 61], [226, 1190]]
+
+FUSION:
+  Metrics:
+  Accuracy (ACC):  92.56%
+  UAR:             93.04%
+  WA-F1:           92.59%
+  AUC:             0.9804
+  Precision:       0.8747
+  Recall:          0.9661
+  F1-Score:        0.9181
+  Recall (Real):   0.8948
+  Recall (Fake):   0.9661
+  CM: [[1667, 196], [48, 1368]]
+
+================================================================================
+SUMMARY
+================================================================================
+  Video ACC:  88.6% | AUC: 0.9365
+  Audio ACC:  91.2% | AUC: 0.9659
+  Fusion ACC: 92.6% | AUC: 0.9804
+  Best modality: AUDIO
+  Fusion improvement: 1.31%
+================================================================================
+
+
+(deepfake-detection) ali@studi-gpu-ssh-6c8f57ff57-9j7k8:/data/shared/ali/deepfake$ python evaluation/evaluate_fakeavceleb.py   --config configs/phase1.yaml   --checkpoint /data/shared/ali/deepfake/checkpoints/phase1_resnet_lstm/best_model.pth   --mode by_modality   --split test                    
+
+============================================================
+Setting up model for phase: phase1
+============================================================
+/data/shared/ali/miniforge/envs/deepfake-detection/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/data/shared/ali/miniforge/envs/deepfake-detection/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_g', 'encoder.pos_conv_embed.conv.weight_v']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Unfrozen last 2/12 encoder layers
+   Phase: phase1
+   Total params: 124,048,582
+   Trainable: 35,286,790
+============================================================
+
+Loading checkpoint: /data/shared/ali/deepfake/checkpoints/phase1_resnet_lstm/best_model.pth
+Checkpoint epoch: 19
+Checkpoint loaded successfully
+
+
+================================================================================
+MODALITY EVALUATION ON FAKEAVCELEB (test set)
+================================================================================
+
+FakeAVCeleb test distribution - Real: 43, Fake: 2115
+Total: 2158 samples
+Evaluating all modalities...
+Processed 50/540 batches
+Processed 100/540 batches
+Processed 150/540 batches
+Processed 200/540 batches
+Processed 250/540 batches
+Processed 300/540 batches
+Processed 350/540 batches
+Processed 400/540 batches
+Processed 450/540 batches
+Processed 500/540 batches
+
+================================================================================
+VIDEO-ONLY RESULTS
+================================================================================
+  Metrics:
+  Accuracy (ACC):  97.91%
+  UAR:             49.95%
+  WA-F1:           96.97%
+  AUC:             0.4756
+  Precision:       0.9801
+  Recall:          0.9991
+  F1-Score:        0.9895
+  Recall (Real):   0.0000
+  Recall (Fake):   0.9991
+  CM: [[0, 43], [2, 2113]]
+
+================================================================================
+AUDIO-ONLY RESULTS
+================================================================================
+  Metrics:
+  Accuracy (ACC):  93.00%
+  UAR:             53.14%
+  WA-F1:           94.57%
+  AUC:             0.6301
+  Precision:       0.9814
+  Recall:          0.9466
+  F1-Score:        0.9637
+  Recall (Real):   0.1163
+  Recall (Fake):   0.9466
+  CM: [[5, 38], [113, 2002]]
+
+================================================================================
+FUSION RESULTS
+================================================================================
+  Metrics:
+  Accuracy (ACC):  97.96%
+  UAR:             51.12%
+  WA-F1:           97.08%
+  AUC:             0.7149
+  Precision:       0.9805
+  Recall:          0.9991
+  F1-Score:        0.9897
+  Recall (Real):   0.0233
+  Recall (Fake):   0.9991
+  CM: [[1, 42], [2, 2113]]
+
+================================================================================
+MODALITY COMPARISON SUMMARY
+================================================================================
+Modality        Accuracy     UAR          AUC          F1-Score    
+--------------------------------------------------------------------------------
+Video-only           97.91%       49.95%      0.4756        0.9895
+Audio-only           93.00%       53.14%      0.6301        0.9637
+Fusion               97.96%       51.12%      0.7149        0.9897
+
+================================================================================
+Best Modality: Audio-only (UAR: 53.14%)
+================================================================================
+
+
+(deepfake-detection) ali@studi-gpu-ssh-6c8f57ff57-9j7k8:/data/shared/ali/deepfake$ python evaluation/evaluate_fakeavceleb.py   --config configs/phase1.yaml   --checkpoint /data/shared/ali/deepfake/checkpoints/phase1_resnet_lstm/best_model.pth   --mode by_modality   --split val 
+
+============================================================
+Setting up model for phase: phase1
+============================================================
+/data/shared/ali/miniforge/envs/deepfake-detection/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/data/shared/ali/miniforge/envs/deepfake-detection/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_g', 'encoder.pos_conv_embed.conv.weight_v']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Unfrozen last 2/12 encoder layers
+   Phase: phase1
+   Total params: 124,048,582
+   Trainable: 35,286,790
+============================================================
+
+Loading checkpoint: /data/shared/ali/deepfake/checkpoints/phase1_resnet_lstm/best_model.pth
+Checkpoint epoch: 19
+Checkpoint loaded successfully
+
+
+================================================================================
+MODALITY EVALUATION ON FAKEAVCELEB (val set)
+================================================================================
+
+FakeAVCeleb val distribution - Real: 55, Fake: 2101
+Total: 2156 samples
+Evaluating all modalities...
+Processed 50/539 batches
+Processed 100/539 batches
+Processed 150/539 batches
+Processed 200/539 batches
+Processed 250/539 batches
+Processed 300/539 batches
+Processed 350/539 batches
+Processed 400/539 batches
+Processed 450/539 batches
+Processed 500/539 batches
+
+================================================================================
+VIDEO-ONLY RESULTS
+================================================================================
+  Metrics:
+  Accuracy (ACC):  97.26%
+  UAR:             49.90%
+  WA-F1:           96.10%
+  AUC:             0.4305
+  Precision:       0.9744
+  Recall:          0.9981
+  F1-Score:        0.9861
+  Recall (Real):   0.0000
+  Recall (Fake):   0.9981
+  CM: [[0, 55], [4, 2097]]
+
+================================================================================
+AUDIO-ONLY RESULTS
+================================================================================
+  Metrics:
+  Accuracy (ACC):  92.53%
+  UAR:             58.99%
+  WA-F1:           94.00%
+  AUC:             0.7103
+  Precision:       0.9792
+  Recall:          0.9434
+  F1-Score:        0.9610
+  Recall (Real):   0.2364
+  Recall (Fake):   0.9434
+  CM: [[13, 42], [119, 1982]]
+
+================================================================================
+FUSION RESULTS
+================================================================================
+  Metrics:
+  Accuracy (ACC):  97.31%
+  UAR:             49.93%
+  WA-F1:           96.12%
+  AUC:             0.7024
+  Precision:       0.9745
+  Recall:          0.9986
+  F1-Score:        0.9864
+  Recall (Real):   0.0000
+  Recall (Fake):   0.9986
+  CM: [[0, 55], [3, 2098]]
+
+================================================================================
+MODALITY COMPARISON SUMMARY
+================================================================================
+Modality        Accuracy     UAR          AUC          F1-Score    
+--------------------------------------------------------------------------------
+Video-only           97.26%       49.90%      0.4305        0.9861
+Audio-only           92.53%       58.99%      0.7103        0.9610
+Fusion               97.31%       49.93%      0.7024        0.9864
+
+================================================================================
+Best Modality: Audio-only (UAR: 58.99%)
+================================================================================
+
+
+(deepfake-detection) ali@studi-gpu-ssh-6c8f57ff57-9j7k8:/data/shared/ali/deepfake$ python evaluation/evaluate_fakeavceleb.py   --config configs/phase1.yaml   --checkpoint /data/shared/ali/deepfake/checkpoints/phase1_resnet_lstm/best_model.pth   --mode by_modality   --split train
+
+============================================================
+Setting up model for phase: phase1
+============================================================
+/data/shared/ali/miniforge/envs/deepfake-detection/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/data/shared/ali/miniforge/envs/deepfake-detection/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_g', 'encoder.pos_conv_embed.conv.weight_v']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Unfrozen last 2/12 encoder layers
+   Phase: phase1
+   Total params: 124,048,582
+   Trainable: 35,286,790
+============================================================
+
+Loading checkpoint: /data/shared/ali/deepfake/checkpoints/phase1_resnet_lstm/best_model.pth
+Checkpoint epoch: 19
+Checkpoint loaded successfully
+
+
+================================================================================
+MODALITY EVALUATION ON FAKEAVCELEB (train set)
+================================================================================
+
+FakeAVCeleb train distribution - Real: 402, Fake: 16850
+Total: 17252 samples
+Evaluating all modalities...
+Processed 50/4313 batches
+Processed 100/4313 batches
+Processed 150/4313 batches
+Processed 200/4313 batches
+Processed 250/4313 batches
+Processed 300/4313 batches
+Processed 350/4313 batches
+Processed 400/4313 batches
+Processed 450/4313 batches
+Processed 500/4313 batches
+Processed 550/4313 batches
+Processed 600/4313 batches
+Processed 650/4313 batches
+Processed 700/4313 batches
+Processed 750/4313 batches
+Processed 800/4313 batches
+Processed 850/4313 batches
+Processed 900/4313 batches
+Processed 950/4313 batches
+Processed 1000/4313 batches
+Processed 1050/4313 batches
+Processed 1100/4313 batches
+Processed 1150/4313 batches
+Processed 1200/4313 batches
+Processed 1250/4313 batches
+Processed 1300/4313 batches
+Processed 1350/4313 batches
+Processed 1400/4313 batches
+Processed 1450/4313 batches
+Processed 1500/4313 batches
+Processed 1550/4313 batches
+Processed 1600/4313 batches
+Processed 1650/4313 batches
+Processed 1700/4313 batches
+Processed 1750/4313 batches
+Processed 1800/4313 batches
+Processed 1850/4313 batches
+Processed 1900/4313 batches
+Processed 1950/4313 batches
+Processed 2000/4313 batches
+Processed 2050/4313 batches
+Processed 2100/4313 batches
+Processed 2150/4313 batches
+Processed 2200/4313 batches
+Processed 2250/4313 batches
+Processed 2300/4313 batches
+Processed 2350/4313 batches
+Processed 2400/4313 batches
+Processed 2450/4313 batches
+Processed 2500/4313 batches
+Processed 2550/4313 batches
+Processed 2600/4313 batches
+Processed 2650/4313 batches
+Processed 2700/4313 batches
+Processed 2750/4313 batches
+Processed 2800/4313 batches
+Processed 2850/4313 batches
+Processed 2900/4313 batches
+Processed 2950/4313 batches
+Processed 3000/4313 batches
+Processed 3050/4313 batches
+Processed 3100/4313 batches
+Processed 3150/4313 batches
+Processed 3200/4313 batches
+Processed 3250/4313 batches
+Processed 3300/4313 batches
+Processed 3350/4313 batches
+Processed 3400/4313 batches
+Processed 3450/4313 batches
+Processed 3500/4313 batches
+Processed 3550/4313 batches
+Processed 3600/4313 batches
+Processed 3650/4313 batches
+Processed 3700/4313 batches
+Processed 3750/4313 batches
+Processed 3800/4313 batches
+Processed 3850/4313 batches
+Processed 3900/4313 batches
+Processed 3950/4313 batches
+Processed 4000/4313 batches
+Processed 4050/4313 batches
+Processed 4100/4313 batches
+Processed 4150/4313 batches
+Processed 4200/4313 batches
+Processed 4250/4313 batches
+Processed 4300/4313 batches
+
+================================================================================
+VIDEO-ONLY RESULTS
+================================================================================
+  Metrics:
+  Accuracy (ACC):  97.54%
+  UAR:             50.30%
+  WA-F1:           96.49%
+  AUC:             0.4335
+  Precision:       0.9768
+  Recall:          0.9985
+  F1-Score:        0.9876
+  Recall (Real):   0.0075
+  Recall (Fake):   0.9985
+  CM: [[3, 399], [25, 16825]]
+
+================================================================================
+AUDIO-ONLY RESULTS
+================================================================================
+  Metrics:
+  Accuracy (ACC):  92.59%
+  UAR:             52.86%
+  WA-F1:           94.06%
+  AUC:             0.6257
+  Precision:       0.9781
+  Recall:          0.9453
+  F1-Score:        0.9614
+  Recall (Real):   0.1119
+  Recall (Fake):   0.9453
+  CM: [[45, 357], [921, 15929]]
+
+================================================================================
+FUSION RESULTS
+================================================================================
+  Metrics:
+  Accuracy (ACC):  97.51%
+  UAR:             49.92%
+  WA-F1:           96.44%
+  AUC:             0.6371
+  Precision:       0.9767
+  Recall:          0.9984
+  F1-Score:        0.9874
+  Recall (Real):   0.0000
+  Recall (Fake):   0.9984
+  CM: [[0, 402], [27, 16823]]
+
+================================================================================
+MODALITY COMPARISON SUMMARY
+================================================================================
+Modality        Accuracy     UAR          AUC          F1-Score    
+--------------------------------------------------------------------------------
+Video-only           97.54%       50.30%      0.4335        0.9876
+Audio-only           92.59%       52.86%      0.6257        0.9614
+Fusion               97.51%       49.92%      0.6371        0.9874
+
+================================================================================
+Best Modality: Audio-only (UAR: 52.86%)
+================================================================================

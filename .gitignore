@@ -12,8 +12,6 @@ checkpoints/
 *.pt
 *.ckpt
 
-logs/
-*.log
 
 runs/
 tensorboard/

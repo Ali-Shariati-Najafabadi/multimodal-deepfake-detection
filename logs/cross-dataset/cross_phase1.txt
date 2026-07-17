@@ -1,0 +1,1515 @@
+# Phase1 AV-Deepfake 4class
+CFG=configs/phase1_avdeepfake_50k_4class.yaml
+CKPT=$CKPTS/phase1_avdeepfake_50k_4class/best_model.pth
+python $EVAL --config $CFG --checkpoint $CKPT --dataset av_deepfake --split val  --cache-dir $AVD4
+python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split test --cache-dir $FAV4
+python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split val  --cache-dir $FAV4
+
+
+
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset av_deepfake --split val  --cache-dir $AVD4
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer5 (1,212,416 params)
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_v', 'encoder.pos_conv_embed.conv.weight_g']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:105: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 4
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 4
+
+================================================================================
+MODALITY-EVALUATION  |  av_deepfake/val  |  Cache: /data/shared/ali/deepfake-detection/cache_avdeepfake_uniform_4class
+================================================================================
+  av_deepfake/val: 40109 Samples | Verteilung: {0: 10023, 1: 10044, 2: 10011, 3: 10031}
+
+  Erste Batch: Video (32, 3, 16, 224, 224), Audio (32, 1, 64000)
+  Logits: Video (32, 2), Audio (32, 2), Fusion (32, 4)
+  Per-Modality-Kopf: aux_head
+
+  50/1254 Batches
+  100/1254 Batches
+  150/1254 Batches
+  200/1254 Batches
+  250/1254 Batches
+  300/1254 Batches
+  350/1254 Batches
+  400/1254 Batches
+  450/1254 Batches
+  500/1254 Batches
+  550/1254 Batches
+  600/1254 Batches
+  650/1254 Batches
+  700/1254 Batches
+  750/1254 Batches
+  800/1254 Batches
+  850/1254 Batches
+  900/1254 Batches
+  950/1254 Batches
+  1000/1254 Batches
+  1050/1254 Batches
+  1100/1254 Batches
+  1150/1254 Batches
+  1200/1254 Batches
+  1250/1254 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  67.40%
+  UAR:             67.40%
+  WA-F1:           67.37%
+  AUC:             0.7248
+  Precision:       0.6638
+  Recall:          0.7044
+  F1-Score:        0.6835
+  Recall (Real):   0.6436
+  Recall (Fake):   0.7044
+
+  Confusion Matrix (2x2):
+    [12916, 7151]
+    [5924, 14118]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  75.16%
+  UAR:             75.18%
+  WA-F1:           74.36%
+  AUC:             0.8018
+  Precision:       0.8893
+  Recall:          0.5753
+  F1-Score:        0.6986
+  Recall (Real):   0.9283
+  Recall (Fake):   0.5753
+
+  Confusion Matrix (2x2):
+    [18597, 1437]
+    [8526, 11549]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  54.89%
+  UAR:             54.92%
+  WA-F1:           48.38%
+  AUC:             0.8236
+  Precision:       0.4948
+  Recall:          0.5492
+  F1-Score:        0.4840
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6722
+      Recall:    0.8960
+      F1-Score:  0.7681
+    Class 1:
+      Precision: 0.3228
+      Recall:    0.0357
+      F1-Score:  0.0644
+    Class 2:
+      Precision: 0.5131
+      Recall:    0.7315
+      F1-Score:  0.6031
+    Class 3:
+      Precision: 0.4710
+      Recall:    0.5336
+      F1-Score:  0.5004
+
+  Confusion Matrix (4x4):
+    [8981, 163, 574, 305]
+    [1174, 359, 3199, 5312]
+    [2065, 229, 7323, 394]
+    [1141, 361, 3176, 5353]
+
+================================================================================
+SUMMARY  (av_deepfake/val)
+  Video   ACC 67.4%  UAR 67.4%  AUC 0.7248
+  Audio   ACC 75.2%  UAR 75.2%  AUC 0.8018
+  Fusion  ACC 54.9%  UAR 54.9%  AUC 0.8236
+================================================================================
+
+
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split test --cache-dir $FAV4
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer5 (1,212,416 params)
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_g', 'encoder.pos_conv_embed.conv.weight_v']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:105: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 4
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 4
+
+================================================================================
+MODALITY-EVALUATION  |  fakeavceleb/test  |  Cache: /data/shared/ali/deepfake-detection/cache_fakeavceleb_4class
+================================================================================
+  fakeavceleb/test: 3309 Samples | Verteilung: {0: 75, 1: 75, 2: 1487, 3: 1672}
+
+  Erste Batch: Video (32, 3, 16, 224, 224), Audio (32, 1, 64000)
+  Logits: Video (32, 2), Audio (32, 2), Fusion (32, 4)
+  Per-Modality-Kopf: aux_head
+
+  50/104 Batches
+  100/104 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  5.32%
+  UAR:             50.41%
+  WA-F1:           1.95%
+  AUC:             0.5106
+  Precision:       1.0000
+  Recall:          0.0082
+  F1-Score:        0.0163
+  Recall (Real):   1.0000
+  Recall (Fake):   0.0082
+
+  Confusion Matrix (2x2):
+    [150, 0]
+    [3133, 26]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  84.16%
+  UAR:             84.89%
+  WA-F1:           83.98%
+  AUC:             0.8716
+  Precision:       0.9737
+  Recall:          0.7195
+  F1-Score:        0.8275
+  Recall (Real):   0.9782
+  Recall (Fake):   0.7195
+
+  Confusion Matrix (2x2):
+    [1528, 34]
+    [490, 1257]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  15.05%
+  UAR:             31.68%
+  WA-F1:           20.68%
+  AUC:             0.7267
+  Precision:       0.5090
+  Recall:          0.3168
+  F1-Score:        0.1212
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.0263
+      Recall:    1.0000
+      F1-Score:  0.0512
+    Class 1:
+      Precision: 0.2500
+      Recall:    0.0133
+      F1-Score:  0.0253
+    Class 2:
+      Precision: 0.8182
+      Recall:    0.0121
+      F1-Score:  0.0239
+    Class 3:
+      Precision: 0.9417
+      Recall:    0.2416
+      F1-Score:  0.3846
+
+  Confusion Matrix (4x4):
+    [75, 0, 0, 0]
+    [54, 1, 0, 20]
+    [1464, 0, 18, 5]
+    [1261, 3, 4, 404]
+
+================================================================================
+SUMMARY  (fakeavceleb/test)
+  Video   ACC 5.3%  UAR 50.4%  AUC 0.5106
+  Audio   ACC 84.2%  UAR 84.9%  AUC 0.8716
+  Fusion  ACC 15.0%  UAR 31.7%  AUC 0.7267
+================================================================================
+
+
+
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split val --cache-dir $FAV4         
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer5 (1,212,416 params)
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_v', 'encoder.pos_conv_embed.conv.weight_g']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:105: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 4
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 4
+
+================================================================================
+MODALITY-EVALUATION  |  fakeavceleb/val  |  Cache: /data/shared/ali/deepfake-detection/cache_fakeavceleb_4class
+================================================================================
+  fakeavceleb/val: 3193 Samples | Verteilung: {0: 75, 1: 75, 2: 1451, 3: 1592}
+
+  Erste Batch: Video (32, 3, 16, 224, 224), Audio (32, 1, 64000)
+  Logits: Video (32, 2), Audio (32, 2), Fusion (32, 4)
+  Per-Modality-Kopf: aux_head
+
+  50/100 Batches
+  100/100 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  7.20%
+  UAR:             51.31%
+  WA-F1:           5.31%
+  AUC:             0.4857
+  Precision:       1.0000
+  Recall:          0.0263
+  F1-Score:        0.0512
+  Recall (Real):   1.0000
+  Recall (Fake):   0.0263
+
+  Confusion Matrix (2x2):
+    [150, 0]
+    [2963, 80]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  83.65%
+  UAR:             84.14%
+  WA-F1:           83.51%
+  AUC:             0.8758
+  Precision:       0.9441
+  Recall:          0.7301
+  F1-Score:        0.8234
+  Recall (Real):   0.9528
+  Recall (Fake):   0.7301
+
+  Confusion Matrix (2x2):
+    [1454, 72]
+    [450, 1217]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  16.85%
+  UAR:             32.34%
+  WA-F1:           23.31%
+  AUC:             0.7237
+  Precision:       0.4395
+  Recall:          0.3234
+  F1-Score:        0.1312
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.0280
+      Recall:    1.0000
+      F1-Score:  0.0544
+    Class 1:
+      Precision: 0.0000
+      Recall:    0.0000
+      F1-Score:  0.0000
+    Class 2:
+      Precision: 0.7931
+      Recall:    0.0317
+      F1-Score:  0.0610
+    Class 3:
+      Precision: 0.9371
+      Recall:    0.2619
+      F1-Score:  0.4094
+
+  Confusion Matrix (4x4):
+    [75, 0, 0, 0]
+    [51, 0, 0, 24]
+    [1401, 0, 46, 4]
+    [1155, 8, 12, 417]
+
+================================================================================
+SUMMARY  (fakeavceleb/val)
+  Video   ACC 7.2%  UAR 51.3%  AUC 0.4857
+  Audio   ACC 83.7%  UAR 84.1%  AUC 0.8758
+  Fusion  ACC 16.8%  UAR 32.3%  AUC 0.7237
+================================================================================
+
+
+
+
+
+seg:
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset av_deepfake  --split val --cache-dir $AVD4
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer5 (1,212,416 params)
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_g', 'encoder.pos_conv_embed.conv.weight_v']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:119: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 19
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 4
+
+================================================================================
+MODALITY-EVALUATION  |  av_deepfake/val  |  Cache: /data/shared/ali/deepfake-detection/cache_avdeepfake_uniform_4class
+================================================================================
+  av_deepfake/val: 40109 Samples | Verteilung: {0: 10023, 1: 10044, 2: 10011, 3: 10031}
+
+  Erste Batch: Video (32, 3, 16, 224, 224), Audio (32, 1, 64000)
+  Logits: Video (32, 2), Audio (32, 2), Fusion (32, 4)
+  Per-Modality-Kopf: aux_head
+
+  50/1254 Batches
+  100/1254 Batches
+  150/1254 Batches
+  200/1254 Batches
+  250/1254 Batches
+  300/1254 Batches
+  350/1254 Batches
+  400/1254 Batches
+  450/1254 Batches
+  500/1254 Batches
+  550/1254 Batches
+  600/1254 Batches
+  650/1254 Batches
+  700/1254 Batches
+  750/1254 Batches
+  800/1254 Batches
+  850/1254 Batches
+  900/1254 Batches
+  950/1254 Batches
+  1000/1254 Batches
+  1050/1254 Batches
+  1100/1254 Batches
+  1150/1254 Batches
+  1200/1254 Batches
+  1250/1254 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  72.85%
+  UAR:             72.83%
+  WA-F1:           71.06%
+  AUC:             0.8145
+  Precision:       0.9532
+  Recall:          0.4802
+  F1-Score:        0.6387
+  Recall (Real):   0.9765
+  Recall (Fake):   0.4802
+
+  Confusion Matrix (2x2):
+    [19595, 472]
+    [10418, 9624]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  75.21%
+  UAR:             75.23%
+  WA-F1:           73.89%
+  AUC:             0.7790
+  Precision:       0.9594
+  Recall:          0.5270
+  F1-Score:        0.6803
+  Recall (Real):   0.9776
+  Recall (Fake):   0.5270
+
+  Confusion Matrix (2x2):
+    [19586, 448]
+    [9495, 10580]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  52.69%
+  UAR:             52.69%
+  WA-F1:           51.03%
+  AUC:             0.7639
+  Precision:       0.6737
+  Recall:          0.5269
+  F1-Score:        0.5102
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.3956
+      Recall:    0.9659
+      F1-Score:  0.5613
+    Class 1:
+      Precision: 0.6606
+      Recall:    0.5177
+      F1-Score:  0.5805
+    Class 2:
+      Precision: 0.7254
+      Recall:    0.3250
+      F1-Score:  0.4489
+    Class 3:
+      Precision: 0.9132
+      Recall:    0.2988
+      F1-Score:  0.4502
+
+  Confusion Matrix (4x4):
+    [9681, 196, 112, 34]
+    [4651, 5200, 81, 112]
+    [6486, 132, 3254, 139]
+    [3651, 2344, 1039, 2997]
+
+================================================================================
+SUMMARY  (av_deepfake/val)
+  Video   ACC 72.8%  UAR 72.8%  AUC 0.8145
+  Audio   ACC 75.2%  UAR 75.2%  AUC 0.7790
+  Fusion  ACC 52.7%  UAR 52.7%  AUC 0.7639
+================================================================================
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split test --cache-dir $FAV4
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer5 (1,212,416 params)
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_g', 'encoder.pos_conv_embed.conv.weight_v']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:119: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 19
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 4
+
+================================================================================
+MODALITY-EVALUATION  |  fakeavceleb/test  |  Cache: /data/shared/ali/deepfake-detection/cache_fakeavceleb_4class
+================================================================================
+  fakeavceleb/test: 3309 Samples | Verteilung: {0: 75, 1: 75, 2: 1487, 3: 1672}
+
+  Erste Batch: Video (32, 3, 16, 224, 224), Audio (32, 1, 64000)
+  Logits: Video (32, 2), Audio (32, 2), Fusion (32, 4)
+  Per-Modality-Kopf: aux_head
+
+  50/104 Batches
+  100/104 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  37.53%
+  UAR:             66.97%
+  WA-F1:           49.64%
+  AUC:             0.8685
+  Precision:       0.9991
+  Recall:          0.3460
+  F1-Score:        0.5140
+  Recall (Real):   0.9933
+  Recall (Fake):   0.3460
+
+  Confusion Matrix (2x2):
+    [149, 1]
+    [2066, 1093]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  77.91%
+  UAR:             79.07%
+  WA-F1:           77.09%
+  AUC:             0.9791
+  Precision:       0.9980
+  Recall:          0.5827
+  F1-Score:        0.7358
+  Recall (Real):   0.9987
+  Recall (Fake):   0.5827
+
+  Confusion Matrix (2x2):
+    [1560, 2]
+    [729, 1018]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  20.43%
+  UAR:             49.36%
+  WA-F1:           27.09%
+  AUC:             0.7737
+  Precision:       0.3811
+  Recall:          0.4936
+  F1-Score:        0.1901
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.0419
+      Recall:    1.0000
+      F1-Score:  0.0805
+    Class 1:
+      Precision: 0.0720
+      Recall:    0.6267
+      F1-Score:  0.1291
+    Class 2:
+      Precision: 0.4135
+      Recall:    0.1479
+      F1-Score:  0.2179
+    Class 3:
+      Precision: 0.9970
+      Recall:    0.1998
+      F1-Score:  0.3328
+
+  Confusion Matrix (4x4):
+    [75, 0, 0, 0]
+    [28, 47, 0, 0]
+    [1265, 1, 220, 1]
+    [421, 605, 312, 334]
+
+================================================================================
+SUMMARY  (fakeavceleb/test)
+  Video   ACC 37.5%  UAR 67.0%  AUC 0.8685
+  Audio   ACC 77.9%  UAR 79.1%  AUC 0.9791
+  Fusion  ACC 20.4%  UAR 49.4%  AUC 0.7737
+================================================================================
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split val --cache-dir $FAV4
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer5 (1,212,416 params)
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_v', 'encoder.pos_conv_embed.conv.weight_g']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original1', 'encoder.pos_conv_embed.conv.parametrizations.weight.original0']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:119: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 19
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 4
+
+================================================================================
+MODALITY-EVALUATION  |  fakeavceleb/val  |  Cache: /data/shared/ali/deepfake-detection/cache_fakeavceleb_4class
+================================================================================
+  fakeavceleb/val: 3193 Samples | Verteilung: {0: 75, 1: 75, 2: 1451, 3: 1592}
+
+  Erste Batch: Video (32, 3, 16, 224, 224), Audio (32, 1, 64000)
+  Logits: Video (32, 2), Audio (32, 2), Fusion (32, 4)
+  Per-Modality-Kopf: aux_head
+
+  50/100 Batches
+  100/100 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  37.90%
+  UAR:             67.42%
+  WA-F1:           49.86%
+  AUC:             0.8872
+  Precision:       1.0000
+  Recall:          0.3483
+  F1-Score:        0.5167
+  Recall (Real):   1.0000
+  Recall (Fake):   0.3483
+
+  Confusion Matrix (2x2):
+    [150, 0]
+    [1983, 1060]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  77.01%
+  UAR:             77.98%
+  WA-F1:           76.01%
+  AUC:             0.9852
+  Precision:       0.9968
+  Recall:          0.5615
+  F1-Score:        0.7183
+  Recall (Real):   0.9980
+  Recall (Fake):   0.5615
+
+  Confusion Matrix (2x2):
+    [1523, 3]
+    [731, 936]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  22.20%
+  UAR:             50.26%
+  WA-F1:           29.27%
+  AUC:             0.7831
+  Precision:       0.3927
+  Recall:          0.5026
+  F1-Score:        0.2058
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.0437
+      Recall:    0.9867
+      F1-Score:  0.0837
+    Class 1:
+      Precision: 0.0792
+      Recall:    0.6400
+      F1-Score:  0.1410
+    Class 2:
+      Precision: 0.4478
+      Recall:    0.1716
+      F1-Score:  0.2481
+    Class 3:
+      Precision: 1.0000
+      Recall:    0.2123
+      F1-Score:  0.3503
+
+  Confusion Matrix (4x4):
+    [74, 1, 0, 0]
+    [27, 48, 0, 0]
+    [1200, 2, 249, 0]
+    [392, 555, 307, 338]
+
+================================================================================
+SUMMARY  (fakeavceleb/val)
+  Video   ACC 37.9%  UAR 67.4%  AUC 0.8872
+  Audio   ACC 77.0%  UAR 78.0%  AUC 0.9852
+  Fusion  ACC 22.2%  UAR 50.3%  AUC 0.7831
+================================================================================
+
+
+
+
+
+
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$
+
+
+
+
+
+# Phase1 AV-Deepfake binär
+CFG=configs/phase1_avdeepfake_50k_binary.yaml
+CKPT=$CKPTS/phase1_avdeepfake_50k_binary/best_model.pth
+python $EVAL --config $CFG --checkpoint $CKPT --dataset av_deepfake --split val --cache-dir $AVDB
+python $EVAL --config $CFG --checkpoint $CKPT --dataset deepspeak   --split val --cache-dir /data/shared/ali/deepfake-detection/cache_deepspeak_binary
+python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split val --cache-dir /data/shared/ali/deepfake-detection/cache_fakeavceleb_binary
+python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split test --cache-dir /data/shared/ali/deepfake-detection/cache_fakeavceleb_binary
+
+
+
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset av_deepfake --split val --cache-dir $AVDB
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer5 (1,212,416 params)
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_g', 'encoder.pos_conv_embed.conv.weight_v']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:105: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 4
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 2
+
+================================================================================
+MODALITY-EVALUATION  |  av_deepfake/val  |  Cache: /data/shared/ali/deepfake-detection/cache_avdeepfake_uniform_binary
+================================================================================
+  av_deepfake/val: 40100 Samples | Verteilung: {0: 20043, 1: 20057}
+
+  Erste Batch: Video (32, 3, 16, 224, 224), Audio (32, 1, 64000)
+  Logits: Video (32, 2), Audio (32, 2), Fusion (32, 2)
+  Per-Modality-Kopf: aux_head
+
+  50/1254 Batches
+  100/1254 Batches
+  150/1254 Batches
+  200/1254 Batches
+  250/1254 Batches
+  300/1254 Batches
+  350/1254 Batches
+  400/1254 Batches
+  450/1254 Batches
+  500/1254 Batches
+  550/1254 Batches
+  600/1254 Batches
+  650/1254 Batches
+  700/1254 Batches
+  750/1254 Batches
+  800/1254 Batches
+  850/1254 Batches
+  900/1254 Batches
+  950/1254 Batches
+  1000/1254 Batches
+  1050/1254 Batches
+  1100/1254 Batches
+  1150/1254 Batches
+  1200/1254 Batches
+  1250/1254 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  85.58%
+  UAR:             85.58%
+  WA-F1:           85.44%
+  AUC:             0.9560
+  Precision:       0.9415
+  Recall:          0.7588
+  F1-Score:        0.8404
+  Recall (Real):   0.9528
+  Recall (Fake):   0.7588
+
+  Confusion Matrix (2x2):
+    [19097, 946]
+    [4837, 15220]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  66.84%
+  UAR:             66.85%
+  WA-F1:           64.73%
+  AUC:             0.7118
+  Precision:       0.8302
+  Recall:          0.4237
+  F1-Score:        0.5611
+  Recall (Real):   0.9133
+  Recall (Fake):   0.4237
+
+  Confusion Matrix (2x2):
+    [18305, 1738]
+    [11558, 8499]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  88.89%
+  UAR:             88.89%
+  WA-F1:           88.83%
+  AUC:             0.9682
+  Precision:       0.9495
+  Recall:          0.8215
+  F1-Score:        0.8809
+  Recall (Real):   0.9562
+  Recall (Fake):   0.8215
+
+  Confusion Matrix (2x2):
+    [19166, 877]
+    [3580, 16477]
+
+================================================================================
+SUMMARY  (av_deepfake/val)
+  Video   ACC 85.6%  UAR 85.6%  AUC 0.9560
+  Audio   ACC 66.8%  UAR 66.9%  AUC 0.7118
+  Fusion  ACC 88.9%  UAR 88.9%  AUC 0.9682
+================================================================================
+
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset deepspeak   --split val --cache-dir /data/shared/ali/deepfake-detection/cache_deepspeak_binary
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer5 (1,212,416 params)
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_v', 'encoder.pos_conv_embed.conv.weight_g']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original1', 'encoder.pos_conv_embed.conv.parametrizations.weight.original0']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:105: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 4
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 2
+
+================================================================================
+MODALITY-EVALUATION  |  deepspeak/val  |  Cache: /data/shared/ali/deepfake-detection/cache_deepspeak_binary
+================================================================================
+  deepspeak/val: 3265 Samples | Verteilung: {0: 1850, 1: 1415}
+
+  Erste Batch: Video (32, 3, 16, 224, 224), Audio (32, 1, 64000)
+  Logits: Video (32, 2), Audio (32, 2), Fusion (32, 2)
+  Per-Modality-Kopf: aux_head
+
+  50/103 Batches
+  100/103 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  44.66%
+  UAR:             45.22%
+  WA-F1:           44.77%
+  AUC:             0.4553
+  Precision:       0.3906
+  Recall:          0.4947
+  F1-Score:        0.4365
+  Recall (Real):   0.4097
+  Recall (Fake):   0.4947
+
+  Confusion Matrix (2x2):
+    [758, 1092]
+    [715, 700]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  54.30%
+  UAR:             50.33%
+  WA-F1:           49.83%
+  AUC:             0.4729
+  Precision:       0.4414
+  Recall:          0.2049
+  F1-Score:        0.2799
+  Recall (Real):   0.8016
+  Recall (Fake):   0.2049
+
+  Confusion Matrix (2x2):
+    [1483, 367]
+    [1125, 290]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  50.38%
+  UAR:             50.13%
+  WA-F1:           50.59%
+  AUC:             0.4528
+  Precision:       0.4347
+  Recall:          0.4820
+  F1-Score:        0.4571
+  Recall (Real):   0.5205
+  Recall (Fake):   0.4820
+
+  Confusion Matrix (2x2):
+    [963, 887]
+    [733, 682]
+
+================================================================================
+SUMMARY  (deepspeak/val)
+  Video   ACC 44.7%  UAR 45.2%  AUC 0.4553
+  Audio   ACC 54.3%  UAR 50.3%  AUC 0.4729
+  Fusion  ACC 50.4%  UAR 50.1%  AUC 0.4528
+================================================================================
+
+
+
+
+
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split val --cache-dir /data/shared/ali/deepfake-detection/cache_fakeavceleb_binary
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer5 (1,212,416 params)
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_g', 'encoder.pos_conv_embed.conv.weight_v']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:119: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 4
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 2
+
+================================================================================
+MODALITY-EVALUATION  |  fakeavceleb/val  |  Cache: /data/shared/ali/deepfake-detection/cache_fakeavceleb_binary
+================================================================================
+  fakeavceleb/val: 3122 Samples | Verteilung: {0: 75, 1: 3047}
+
+  Erste Batch: Video (32, 3, 16, 224, 224), Audio (32, 1, 64000)
+  Logits: Video (32, 2), Audio (32, 2), Fusion (32, 2)
+  Per-Modality-Kopf: aux_head
+
+  50/98 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  6.18%
+  UAR:             50.64%
+  WA-F1:           7.51%
+  AUC:             0.6847
+  Precision:       0.9836
+  Recall:          0.0394
+  F1-Score:        0.0757
+  Recall (Real):   0.9733
+  Recall (Fake):   0.0394
+
+  Confusion Matrix (2x2):
+    [73, 2]
+    [2927, 120]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  38.79%
+  UAR:             64.09%
+  WA-F1:           53.32%
+  AUC:             0.6973
+  Precision:       0.9939
+  Recall:          0.3751
+  F1-Score:        0.5447
+  Recall (Real):   0.9067
+  Recall (Fake):   0.3751
+
+  Confusion Matrix (2x2):
+    [68, 7]
+    [1904, 1143]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  11.27%
+  UAR:             52.59%
+  WA-F1:           16.53%
+  AUC:             0.7733
+  Precision:       0.9894
+  Recall:          0.0919
+  F1-Score:        0.1682
+  Recall (Real):   0.9600
+  Recall (Fake):   0.0919
+
+  Confusion Matrix (2x2):
+    [72, 3]
+    [2767, 280]
+
+================================================================================
+SUMMARY  (fakeavceleb/val)
+  Video   ACC 6.2%  UAR 50.6%  AUC 0.6847
+  Audio   ACC 38.8%  UAR 64.1%  AUC 0.6973
+  Fusion  ACC 11.3%  UAR 52.6%  AUC 0.7733
+================================================================================
+
+
+
+
+
+
+
+
+
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split test --cache-dir /data/shared/ali/deepfake-detection/cache_fakeavceleb_binary
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer5 (1,212,416 params)
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_v', 'encoder.pos_conv_embed.conv.weight_g']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:119: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 4
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 2
+
+================================================================================
+MODALITY-EVALUATION  |  fakeavceleb/test  |  Cache: /data/shared/ali/deepfake-detection/cache_fakeavceleb_binary
+================================================================================
+  fakeavceleb/test: 3252 Samples | Verteilung: {0: 75, 1: 3177}
+
+  Erste Batch: Video (32, 3, 16, 224, 224), Audio (32, 1, 64000)
+  Logits: Video (32, 2), Audio (32, 2), Fusion (32, 2)
+  Per-Modality-Kopf: aux_head
+
+  50/102 Batches
+  100/102 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  4.27%
+  UAR:             51.01%
+  WA-F1:           3.96%
+  AUC:             0.7401
+  Precision:       1.0000
+  Recall:          0.0201
+  F1-Score:        0.0395
+  Recall (Real):   1.0000
+  Recall (Fake):   0.0201
+
+  Confusion Matrix (2x2):
+    [75, 0]
+    [3113, 64]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  36.01%
+  UAR:             65.30%
+  WA-F1:           50.33%
+  AUC:             0.7187
+  Precision:       0.9973
+  Recall:          0.3459
+  F1-Score:        0.5137
+  Recall (Real):   0.9600
+  Recall (Fake):   0.3459
+
+  Confusion Matrix (2x2):
+    [72, 3]
+    [2078, 1099]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  9.04%
+  UAR:             53.45%
+  WA-F1:           12.71%
+  AUC:             0.8233
+  Precision:       1.0000
+  Recall:          0.0689
+  F1-Score:        0.1290
+  Recall (Real):   1.0000
+  Recall (Fake):   0.0689
+
+  Confusion Matrix (2x2):
+    [75, 0]
+    [2958, 219]
+
+================================================================================
+SUMMARY  (fakeavceleb/test)
+  Video   ACC 4.3%  UAR 51.0%  AUC 0.7401
+  Audio   ACC 36.0%  UAR 65.3%  AUC 0.7187
+  Fusion  ACC 9.0%  UAR 53.4%  AUC 0.8233
+================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Phase1 FakeAVCeleb 4class
+CFG=configs/phase1_fakeav_4class.yaml
+CKPT=$CKPTS/phase1_fakeav_4class/best_model.pth
+python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split test --cache-dir $FAV4
+python $EVAL --config $CFG --checkpoint $CKPT --dataset av_deepfake --split val  --cache-dir $AVD4
+
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset fakeavceleb --split test --cache-dir $FAV4
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_v', 'encoder.pos_conv_embed.conv.weight_g']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original1', 'encoder.pos_conv_embed.conv.parametrizations.weight.original0']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:105: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 10
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 4
+
+================================================================================
+MODALITY-EVALUATION  |  fakeavceleb/test  |  Cache: /data/shared/ali/deepfake-detection/cache_fakeavceleb_4class
+================================================================================
+  fakeavceleb/test: 3309 Samples | Verteilung: {0: 75, 1: 75, 2: 1487, 3: 1672}
+
+  Erste Batch: Video (16, 3, 16, 224, 224), Audio (16, 1, 64000)
+  Logits: Video (16, 2), Audio (16, 2), Fusion (16, 4)
+  Per-Modality-Kopf: aux_head
+
+  50/207 Batches
+  100/207 Batches
+  150/207 Batches
+  200/207 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  99.85%
+  UAR:             99.60%
+  WA-F1:           99.85%
+  AUC:             0.9940
+  Precision:       0.9997
+  Recall:          0.9987
+  F1-Score:        0.9992
+  Recall (Real):   0.9933
+  Recall (Fake):   0.9987
+
+  Confusion Matrix (2x2):
+    [149, 1]
+    [4, 3155]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  99.91%
+  UAR:             99.90%
+  WA-F1:           99.91%
+  AUC:             1.0000
+  Precision:       0.9983
+  Recall:          1.0000
+  F1-Score:        0.9991
+  Recall (Real):   0.9981
+  Recall (Fake):   1.0000
+
+  Confusion Matrix (2x2):
+    [1559, 3]
+    [0, 1747]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  99.76%
+  UAR:             99.55%
+  WA-F1:           99.76%
+  AUC:             0.9995
+  Precision:       0.9867
+  Recall:          0.9955
+  F1-Score:        0.9909
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.9494
+      Recall:    1.0000
+      F1-Score:  0.9740
+    Class 1:
+      Precision: 1.0000
+      Recall:    0.9867
+      F1-Score:  0.9933
+    Class 2:
+      Precision: 1.0000
+      Recall:    0.9953
+      F1-Score:  0.9976
+    Class 3:
+      Precision: 0.9976
+      Recall:    1.0000
+      F1-Score:  0.9988
+
+  Confusion Matrix (4x4):
+    [75, 0, 0, 0]
+    [0, 74, 0, 1]
+    [4, 0, 1480, 3]
+    [0, 0, 0, 1672]
+
+================================================================================
+SUMMARY  (fakeavceleb/test)
+  Video   ACC 99.8%  UAR 99.6%  AUC 0.9940
+  Audio   ACC 99.9%  UAR 99.9%  AUC 1.0000
+  Fusion  ACC 99.8%  UAR 99.5%  AUC 0.9995
+================================================================================
+
+(ali-deepfake) user@frick-mert-ali-0-0:/data/shared/ali/deepfake$ python $EVAL --config $CFG --checkpoint $CKPT --dataset av_deepfake --split val  --cache-dir $AVD4
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
+  _torch_pytree._register_pytree_node(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet50_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet50_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+   Video: Gradient Checkpointing enabled
+ResNetLSTM: Unfroze layer6 (7,077,888 params)
+ResNetLSTM: Unfroze layer7 (14,942,208 params)
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/huggingface_hub/file_download.py:942: FutureWarning: `resume_download` is deprecated and will be removed in version 1.0.0. Downloads always resume when possible. If you want to force a new download, use `force_download=True`.
+  warnings.warn(
+/home/user/miniforge3/envs/ali-deepfake/lib/python3.10/site-packages/transformers/modeling_utils.py:519: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(checkpoint_file, map_location=map_location)
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_v', 'encoder.pos_conv_embed.conv.weight_g']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original0', 'encoder.pos_conv_embed.conv.parametrizations.weight.original1']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+/data/shared/ali/deepfake/evaluation/evaluate_modality.py:105: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  ckpt = torch.load(path, map_location=self.device)
+  Checkpoint Epoch: 10
+
+  Phase: phase1 | Fusion: - | Video: - | Klassen: 4
+
+================================================================================
+MODALITY-EVALUATION  |  av_deepfake/val  |  Cache: /data/shared/ali/deepfake-detection/cache_avdeepfake_uniform_4class
+================================================================================
+  av_deepfake/val: 40109 Samples | Verteilung: {0: 10023, 1: 10044, 2: 10011, 3: 10031}
+
+  Erste Batch: Video (16, 3, 16, 224, 224), Audio (16, 1, 64000)
+  Logits: Video (16, 2), Audio (16, 2), Fusion (16, 4)
+  Per-Modality-Kopf: aux_head
+
+  50/2507 Batches
+  100/2507 Batches
+  150/2507 Batches
+  200/2507 Batches
+  250/2507 Batches
+  300/2507 Batches
+  350/2507 Batches
+  400/2507 Batches
+  450/2507 Batches
+  500/2507 Batches
+  550/2507 Batches
+  600/2507 Batches
+  650/2507 Batches
+  700/2507 Batches
+  750/2507 Batches
+  800/2507 Batches
+  850/2507 Batches
+  900/2507 Batches
+  950/2507 Batches
+  1000/2507 Batches
+  1050/2507 Batches
+  1100/2507 Batches
+  1150/2507 Batches
+  1200/2507 Batches
+  1250/2507 Batches
+  1300/2507 Batches
+  1350/2507 Batches
+  1400/2507 Batches
+  1450/2507 Batches
+  1500/2507 Batches
+  1550/2507 Batches
+  1600/2507 Batches
+  1650/2507 Batches
+  1700/2507 Batches
+  1750/2507 Batches
+  1800/2507 Batches
+  1850/2507 Batches
+  1900/2507 Batches
+  1950/2507 Batches
+  2000/2507 Batches
+  2050/2507 Batches
+  2100/2507 Batches
+  2150/2507 Batches
+  2200/2507 Batches
+  2250/2507 Batches
+  2300/2507 Batches
+  2350/2507 Batches
+  2400/2507 Batches
+  2450/2507 Batches
+  2500/2507 Batches
+
+--------------------------------------------------------------------------------
+VIDEO ONLY
+  Metrics:
+  Accuracy (ACC):  49.04%
+  UAR:             49.03%
+  WA-F1:           47.34%
+  AUC:             0.5355
+  Precision:       0.4845
+  Recall:          0.3107
+  F1-Score:        0.3786
+  Recall (Real):   0.6698
+  Recall (Fake):   0.3107
+
+  Confusion Matrix (2x2):
+    [13441, 6626]
+    [13814, 6228]
+
+AUDIO ONLY
+  Metrics:
+  Accuracy (ACC):  50.23%
+  UAR:             50.27%
+  WA-F1:           38.87%
+  AUC:             0.5115
+  Precision:       0.5201
+  Recall:          0.0716
+  F1-Score:        0.1259
+  Recall (Real):   0.9338
+  Recall (Fake):   0.0716
+
+  Confusion Matrix (2x2):
+    [18707, 1327]
+    [18637, 1438]
+
+FUSION
+  Metrics:
+  Accuracy (ACC):  24.22%
+  UAR:             24.24%
+  WA-F1:           18.05%
+  AUC:             0.5131
+  Precision:       0.2542
+  Recall:          0.2424
+  F1-Score:        0.1806
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.2396
+      Recall:    0.6362
+      F1-Score:  0.3481
+    Class 1:
+      Precision: 0.2727
+      Recall:    0.0164
+      F1-Score:  0.0310
+    Class 2:
+      Precision: 0.2432
+      Recall:    0.2612
+      F1-Score:  0.2519
+    Class 3:
+      Precision: 0.2611
+      Recall:    0.0555
+      F1-Score:  0.0916
+
+  Confusion Matrix (4x4):
+    [6377, 132, 2952, 562]
+    [6750, 165, 2594, 535]
+    [6775, 142, 2615, 479]
+    [6715, 166, 2593, 557]
+
+================================================================================
+SUMMARY  (av_deepfake/val)
+  Video   ACC 49.0%  UAR 49.0%  AUC 0.5355
+  Audio   ACC 50.2%  UAR 50.3%  AUC 0.5115
+  Fusion  ACC 24.2%  UAR 24.2%  AUC 0.5131
+================================================================================

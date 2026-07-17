@@ -1,0 +1,2210 @@
+
+================================================================================
+DEEPFAKE DETECTION - TRAINING LOG
+================================================================================
+Start Time: 2026-06-18 23:06:39
+Log File: logs/training_logs/training_log_20260618_230639.txt
+================================================================================
+
+
+================================================================================
+CONFIGURATION (from configs/phase2_avdeepfake_50k_4class.yaml)
+================================================================================
+
+experiment:
+  name: "phase2_x3d_avdeepfake_50k_4class"
+  phase: "phase2"
+  seed: 42
+  debug_mode: false
+  debug_samples: 30000
+
+models:
+  video:
+    architecture: "x3d_m"
+    pretrained: true
+    freeze_backbone: false
+    unfreeze_layers: ["blocks.3", "blocks.4"]
+    dropout: 0.3
+    num_frames: 16
+    output_type: "video"
+    num_classes: 4
+
+  audio:
+    architecture: "hubert"
+    pretrained_model: "facebook/hubert-base-ls960"
+    freeze_feature_extractor: false
+    unfreeze_last_n_layers: 4
+    dropout: 0.3
+    pooling: "avg"
+    output_type: "video"
+    num_classes: 4
+
+  fusion:
+    type: "concat"
+    dropout: 0.3
+
+  head:
+    type: "classification"
+    hidden_dims: [512, 256]
+    dropout: 0.3
+
+  num_classes: 4
+
+datasets:
+  fakeavceleb:
+    enabled: false
+    cache_dir: "/data/shared/ali/deepfake-detection/cache_fakeavceleb_phase1"
+    balance_classes: false
+
+  av_deepfake:
+    enabled: true
+    cache_dir: "/data/shared/ali/deepfake-detection/cache_avdeepfake_uniform_4class"
+    balance_classes: false
+
+  deepspeak:
+    enabled: false
+    cache_dir: ""
+    balance_classes: false
+
+data:
+  video:
+    max_frames: 16
+    min_frames: 16
+    frame_size: 224
+    normalize: true
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+    use_random_crop: false
+    random_crop_training_only: false
+
+  audio:
+    max_duration: 16.0
+    sample_rate: 16000
+    n_fft: 400
+    hop_length: 160
+    n_mels: 80
+    use_temporal_alignment: false
+    alignment_window: 8.0
+
+  augmentation:
+    enabled: true
+    random_horizontal_flip: 0.5
+    color_jitter:
+      brightness: 0.25
+      contrast: 0.25
+      saturation: 0.15
+      hue: 0.1
+      p: 0.6
+    random_rotation: 12
+    random_rotation_p: 0.3
+    random_grayscale: 0.15
+    gaussian_blur: 0.25
+    jpeg_compression:
+      enabled: true
+      quality_lower: 70
+      quality_upper: 100
+      p: 0.4
+    random_crop:
+      enabled: false
+      scale: [0.90, 1.0]
+      p: 0.2
+
+training:
+  batch_size: 32
+  num_epochs: 20
+  num_workers: 20
+  gradient_accumulation_steps: 2
+  use_weighted_sampler: true
+
+  modality:
+    video_enabled: true
+    audio_enabled: true
+    use_fusion: true
+
+  staged_training:
+    enabled: false
+
+  modality_dropout:
+    enabled: false
+    video_p: 0.0
+    audio_p: 0.0
+
+  optimizer:
+    video:
+      type: "adamw"
+      lr: 3.0e-5
+      weight_decay: 0.01
+      betas: [0.9, 0.999]
+    audio:
+      type: "adamw"
+      lr: 3.0e-5
+      weight_decay: 0.01
+      betas: [0.9, 0.999]
+    fusion:
+      type: "adamw"
+      lr: 1.0e-4
+      weight_decay: 0.05
+      betas: [0.9, 0.999]
+
+  scheduler:
+    video:
+      type: "cosine_warmup"
+      num_warmup_steps: 800
+      num_training_steps: 15700
+    audio:
+      type: "cosine_warmup"
+      num_warmup_steps: 800
+      num_training_steps: 15700
+    fusion:
+      type: "cosine_warmup"
+      num_warmup_steps: 800
+      num_training_steps: 15700
+
+  loss:
+    type: "cross_entropy"
+    class_weights: [1.0, 1.0, 1.0, 1.0]
+    label_smoothing: 0.05
+    auxiliary:
+      enabled: true
+      alpha: 0.6
+      beta: 0.2
+      gamma: 0.2
+
+  gradient_clip: 0.5
+  use_amp: true
+  device: "cuda"
+
+evaluation:
+  save_best_metric: "uar"
+  save_best_mode: "max"
+
+logging:
+  tensorboard_dir: "/data/shared/ali/deepfake/logs/tensorboard/phase2_x3d_avdeepfake_50k_4class"
+
+checkpointing:
+  save_dir: "/data/shared/ali/deepfake/checkpoints_new/phase2_x3d_avdeepfake_50k_4class"
+  keep_last_n: 1
+
+system:
+  cudnn_benchmark: true
+  cudnn_deterministic: false
+  empty_cache_every_n_steps: 100
+================================================================================
+END OF CONFIGURATION
+================================================================================
+
+   Seed set to: 42
+
+============================================================
+DATASET LOADING
+============================================================
+  [fakeavceleb] DISABLED — skipped
+
+  Loading AV_DEEPFAKE ...
+  [av_deepfake/train] 50,185 samples | Class 0: 12530, Class 1: 12555, Class 2: 12538, Class 3: 12562
+  [av_deepfake/val] 40,109 samples | Class 0: 10023, Class 1: 10044, Class 2: 10011, Class 3: 10031
+  [deepspeak] DISABLED — skipped
+
+============================================================
+Total: 50,185 train | 40,109 val
+  WeightedSampler ON  → Class 0: 12,530, Class 1: 12,555, Class 2: 12,538, Class 3: 12,562
+  → ~8 samples/class per batch
+============================================================
+
+
+Dataset Info:
+ Train: 50185 samples
+ Val: 40109 samples
+
+============================================================
+Setting up model for phase: phase2
+============================================================
+Using cache found in /home/user/.cache/torch/hub/facebookresearch_pytorchvideo_main
+X3D: Unfroze block 3 (569,256 params)
+X3D: Unfroze block 4 (1,347,440 params)
+X3D: Loaded x3d_m (pretrained), feature_dim=192
+Some weights of the model checkpoint at facebook/hubert-base-ls960 were not used when initializing HubertModel: ['encoder.pos_conv_embed.conv.weight_g', 'encoder.pos_conv_embed.conv.weight_v']
+- This IS expected if you are initializing HubertModel from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing HubertModel from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of HubertModel were not initialized from the model checkpoint at facebook/hubert-base-ls960 and are newly initialized: ['encoder.pos_conv_embed.conv.parametrizations.weight.original1', 'encoder.pos_conv_embed.conv.parametrizations.weight.original0']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+   Audio: Gradient Checkpointing enabled
+   Audio: Unfrozen last 4/12 encoder layers
+
+ MODEL ARCHITECTURE:
+   Phase: phase2
+   Video Architecture: x3d_m
+   Total params: 97,500,802
+   Trainable: 31,364,168
+   Video: 1,990,588/2,106,998
+   Audio: 28,747,268/94,767,492
+   Fusion: 0/0
+   Head: 626,312/626,312
+============================================================
+
+
+   Video Optimizer: AdamW lr=3e-05
+   Audio Optimizer: AdamW lr=3e-05
+   Fusion+Head Optimizer: AdamW lr=0.0001
+     Fusion params: 0
+     Head params: 624,388
+     Total optimized: 626,312
+   Video Scheduler: CosineWarmup (warmup=800, total=15700)
+   Audio Scheduler: CosineWarmup (warmup=800, total=15700)
+   Fusion Scheduler: CosineWarmup (warmup=800, total=15700)
+
+   Using manual class weights: [1.0, 1.0, 1.0, 1.0]
+
+   Loss: CrossEntropyLoss
+   Label Smoothing: 0.05
+   Aux Loss: CrossEntropyLoss (binär, ungewichtet)
+   Video Augmentation: 6 transforms enabled
+
+ TensorBoard logs: /data/shared/ali/deepfake/logs/tensorboard/phase2_x3d_avdeepfake_50k_4class/phase2_x3d_avdeepfake_50k_4class_bs32_vlr3e-05_alr3e-05_20260618_230645
+
+Starting Training
+   Epochs: 20
+   Device: cuda
+   AMP: True
+
+
+============================================================
+Epoch 1/20
+============================================================
+============================================================
+DEBUG Epoch 1, Batch 0:
+
+  INPUT SHAPES:
+    Video features: torch.Size([32, 3, 16, 224, 224])
+       Batch=32, Channels=3, Frames=16, Height=224, Width=224
+    Audio features: torch.Size([32, 1, 64000])
+       Batch=32, Segments=1, Samples/segment=64000
+       Segment duration: 4.00s @ 16kHz
+    Video masks: torch.Size([32, 16])
+    Audio masks: torch.Size([32, 1])
+
+  LOGITS STATISTICS:
+    Video logits: shape=torch.Size([32, 2]), range=[-1.83, 2.12], std=0.8843
+    Audio logits: shape=torch.Size([32, 2]), range=[-0.31, 0.28], std=0.1349
+    Fusion logits: shape=torch.Size([32, 4]), range=[-0.47, 0.31], std=0.1404
+
+  LOSSES:
+    Fusion loss: 1.4094
+    Video loss:  1.0344
+    Audio loss:  0.6890
+    Total loss:  1.1903
+    Weights: alpha=0.6, beta=0.2, gamma=0.2
+
+  FEATURE DIMENSIONS:
+    Video features: 192
+    Audio features: 768
+    Fusion features: 960
+
+  GRADIENT ACCUMULATION STEPS: 2
+============================================================
+
+Epoch 1 Training Summary:
+  Average Losses:
+    Total: 1.0729
+    Fusion: 1.3269 (alpha=0.6)
+    Video:  0.7552 (beta=0.2)
+    Audio:  0.6288 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000029
+  Audio:  0.000029
+  Fusion: 0.000098
+
+Train:
+  Metrics:
+  Accuracy (ACC):  30.35%
+  UAR:             30.35%
+  WA-F1:           30.29%
+  AUC:             0.6103
+  Precision:       0.3035
+  Recall:          0.3035
+  F1-Score:        0.3028
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.3089
+      Recall:    0.3075
+      F1-Score:  0.3082
+    Class 1:
+      Precision: 0.2934
+      Recall:    0.2584
+      F1-Score:  0.2748
+    Class 2:
+      Precision: 0.2946
+      Recall:    0.3378
+      F1-Score:  0.3147
+    Class 3:
+      Precision: 0.3170
+      Recall:    0.3101
+      F1-Score:  0.3136
+
+  Confusion Matrix (4x4):
+    [3866, 2204, 4197, 2307]
+    [2476, 3215, 2873, 3876]
+    [3789, 2110, 4196, 2328]
+    [2385, 3428, 2975, 3951]
+
+Epoch 1 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-1.850, 2.299]
+    Mean: 0.128, Std: 1.385
+    Class 0: -0.857, Class 1: 0.980, Class 2: -0.728, Class 3: 1.117
+  Average Loss: 1.2418
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  37.81%
+  UAR:             37.84%
+  WA-F1:           30.19%
+  AUC:             0.6872
+  Precision:       0.3290
+  Recall:          0.3784
+  F1-Score:        0.3020
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.3617
+      Recall:    0.1726
+      F1-Score:  0.2337
+    Class 1:
+      Precision: 0.1639
+      Recall:    0.0010
+      F1-Score:  0.0020
+    Class 2:
+      Precision: 0.3467
+      Recall:    0.7927
+      F1-Score:  0.4824
+    Class 3:
+      Precision: 0.4436
+      Recall:    0.5473
+      F1-Score:  0.4900
+
+  Confusion Matrix (4x4):
+    [1730, 19, 7603, 671]
+    [903, 10, 3667, 5464]
+    [1303, 21, 7936, 751]
+    [847, 11, 3683, 5490]
+
+   New best model! uar: 0.3784
+
+
+============================================================
+Epoch 2/20
+============================================================
+============================================================
+DEBUG Epoch 2, Batch 0:
+
+  INPUT SHAPES:
+    Video features: torch.Size([32, 3, 16, 224, 224])
+       Batch=32, Channels=3, Frames=16, Height=224, Width=224
+    Audio features: torch.Size([32, 1, 64000])
+       Batch=32, Segments=1, Samples/segment=64000
+       Segment duration: 4.00s @ 16kHz
+    Video masks: torch.Size([32, 16])
+    Audio masks: torch.Size([32, 1])
+
+  LOGITS STATISTICS:
+    Video logits: shape=torch.Size([32, 2]), range=[-1.24, 0.36], std=0.3730
+    Audio logits: shape=torch.Size([32, 2]), range=[-1.92, 1.83], std=0.8569
+    Fusion logits: shape=torch.Size([32, 4]), range=[-2.14, 2.35], std=0.8994
+
+  LOSSES:
+    Fusion loss: 1.2178
+    Video loss:  0.6873
+    Audio loss:  0.5339
+    Total loss:  0.9749
+    Weights: alpha=0.6, beta=0.2, gamma=0.2
+
+  FEATURE DIMENSIONS:
+    Video features: 192
+    Audio features: 768
+    Fusion features: 960
+
+  GRADIENT ACCUMULATION STEPS: 2
+============================================================
+
+Epoch 2 Training Summary:
+  Average Losses:
+    Total: 0.9766
+    Fusion: 1.2206 (alpha=0.6)
+    Video:  0.6942 (beta=0.2)
+    Audio:  0.5273 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000030
+  Audio:  0.000030
+  Fusion: 0.000099
+
+Train:
+  Metrics:
+  Accuracy (ACC):  38.08%
+  UAR:             38.01%
+  WA-F1:           37.02%
+  AUC:             0.6867
+  Precision:       0.4039
+  Recall:          0.3801
+  F1-Score:        0.3699
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.3483
+      Recall:    0.4078
+      F1-Score:  0.3757
+    Class 1:
+      Precision: 0.4579
+      Recall:    0.2452
+      F1-Score:  0.3194
+    Class 2:
+      Precision: 0.3516
+      Recall:    0.5928
+      F1-Score:  0.4414
+    Class 3:
+      Precision: 0.4578
+      Recall:    0.2744
+      F1-Score:  0.3432
+
+  Confusion Matrix (4x4):
+    [5065, 197, 6847, 312]
+    [2365, 3030, 3453, 3507]
+    [4611, 247, 7525, 311]
+    [2499, 3143, 3577, 3487]
+
+Epoch 2 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-1.875, 2.287]
+    Mean: 0.117, Std: 1.327
+    Class 0: -0.826, Class 1: 1.001, Class 2: -0.686, Class 3: 0.980
+  Average Loss: 1.2034
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  38.44%
+  UAR:             38.45%
+  WA-F1:           32.82%
+  AUC:             0.6958
+  Precision:       0.3580
+  Recall:          0.3845
+  F1-Score:        0.3282
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.3628
+      Recall:    0.3000
+      F1-Score:  0.3284
+    Class 1:
+      Precision: 0.4707
+      Recall:    0.5299
+      F1-Score:  0.4985
+    Class 2:
+      Precision: 0.3478
+      Recall:    0.6967
+      F1-Score:  0.4640
+    Class 3:
+      Precision: 0.2505
+      Recall:    0.0115
+      F1-Score:  0.0219
+
+  Confusion Matrix (4x4):
+    [3007, 282, 6618, 116]
+    [1374, 5322, 3216, 132]
+    [2589, 351, 6975, 96]
+    [1319, 5351, 3246, 115]
+
+   New best model! uar: 0.3845
+
+
+============================================================
+Epoch 3/20
+============================================================
+============================================================
+DEBUG Epoch 3, Batch 0:
+
+  INPUT SHAPES:
+    Video features: torch.Size([32, 3, 16, 224, 224])
+       Batch=32, Channels=3, Frames=16, Height=224, Width=224
+    Audio features: torch.Size([32, 1, 64000])
+       Batch=32, Segments=1, Samples/segment=64000
+       Segment duration: 4.00s @ 16kHz
+    Video masks: torch.Size([32, 16])
+    Audio masks: torch.Size([32, 1])
+
+  LOGITS STATISTICS:
+    Video logits: shape=torch.Size([32, 2]), range=[-0.71, 0.11], std=0.1621
+    Audio logits: shape=torch.Size([32, 2]), range=[-1.97, 1.98], std=0.9292
+    Fusion logits: shape=torch.Size([32, 4]), range=[-2.32, 2.53], std=0.9189
+
+  LOSSES:
+    Fusion loss: 1.1740
+    Video loss:  0.6936
+    Audio loss:  0.4545
+    Total loss:  0.9341
+    Weights: alpha=0.6, beta=0.2, gamma=0.2
+
+  FEATURE DIMENSIONS:
+    Video features: 192
+    Audio features: 768
+    Fusion features: 960
+
+  GRADIENT ACCUMULATION STEPS: 2
+============================================================
+
+Epoch 3 Training Summary:
+  Average Losses:
+    Total: 0.9635
+    Fusion: 1.2029 (alpha=0.6)
+    Video:  0.6917 (beta=0.2)
+    Audio:  0.5173 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000029
+  Audio:  0.000029
+  Fusion: 0.000097
+
+Train:
+  Metrics:
+  Accuracy (ACC):  40.20%
+  UAR:             40.21%
+  WA-F1:           38.91%
+  AUC:             0.7090
+  Precision:       0.4223
+  Recall:          0.4021
+  F1-Score:        0.3892
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.3926
+      Recall:    0.4518
+      F1-Score:  0.4201
+    Class 1:
+      Precision: 0.4631
+      Recall:    0.3166
+      F1-Score:  0.3761
+    Class 2:
+      Precision: 0.3649
+      Recall:    0.6173
+      F1-Score:  0.4587
+    Class 3:
+      Precision: 0.4686
+      Recall:    0.2228
+      F1-Score:  0.3020
+
+  Confusion Matrix (4x4):
+    [5627, 333, 6325, 171]
+    [2212, 3968, 3493, 2861]
+    [4255, 408, 7766, 152]
+    [2239, 3860, 3698, 2808]
+
+Epoch 3 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.053, 2.541]
+    Mean: 0.147, Std: 1.574
+    Class 0: -1.289, Class 1: 1.456, Class 2: -0.881, Class 3: 1.300
+  Average Loss: 1.2158
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  39.75%
+  UAR:             39.77%
+  WA-F1:           32.43%
+  AUC:             0.7203
+  Precision:       0.3548
+  Recall:          0.3977
+  F1-Score:        0.3243
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.4304
+      Recall:    0.2231
+      F1-Score:  0.2939
+    Class 1:
+      Precision: 0.4562
+      Recall:    0.5573
+      F1-Score:  0.5017
+    Class 2:
+      Precision: 0.3592
+      Recall:    0.8080
+      F1-Score:  0.4974
+    Class 3:
+      Precision: 0.1732
+      Recall:    0.0022
+      F1-Score:  0.0043
+
+  Confusion Matrix (4x4):
+    [2236, 485, 7254, 48]
+    [838, 5598, 3581, 27]
+    [1309, 583, 8089, 30]
+    [812, 5604, 3593, 22]
+
+   New best model! uar: 0.3977
+
+
+============================================================
+Epoch 4/20
+============================================================
+
+Epoch 4 Training Summary:
+  Average Losses:
+    Total: 0.9177
+    Fusion: 1.1358 (alpha=0.6)
+    Video:  0.6702 (beta=0.2)
+    Audio:  0.5111 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000028
+  Audio:  0.000028
+  Fusion: 0.000094
+
+Train:
+  Metrics:
+  Accuracy (ACC):  47.07%
+  UAR:             46.89%
+  WA-F1:           44.60%
+  AUC:             0.7618
+  Precision:       0.4725
+  Recall:          0.4689
+  F1-Score:        0.4447
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.5147
+      Recall:    0.7078
+      F1-Score:  0.5960
+    Class 1:
+      Precision: 0.4759
+      Recall:    0.3510
+      F1-Score:  0.4040
+    Class 2:
+      Precision: 0.4255
+      Recall:    0.6258
+      F1-Score:  0.5066
+    Class 3:
+      Precision: 0.4741
+      Recall:    0.1911
+      F1-Score:  0.2724
+
+  Confusion Matrix (4x4):
+    [8996, 298, 3334, 81]
+    [2148, 4437, 3638, 2417]
+    [4169, 407, 7836, 110]
+    [2165, 4182, 3607, 2351]
+
+Epoch 4 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.137, 2.428]
+    Mean: 0.153, Std: 1.561
+    Class 0: -1.194, Class 1: 1.366, Class 2: -0.883, Class 3: 1.324
+  Average Loss: 1.1990
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  43.38%
+  UAR:             43.39%
+  WA-F1:           37.39%
+  AUC:             0.7286
+  Precision:       0.3793
+  Recall:          0.4339
+  F1-Score:        0.3739
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.4751
+      Recall:    0.5196
+      F1-Score:  0.4964
+    Class 1:
+      Precision: 0.4475
+      Recall:    0.5677
+      F1-Score:  0.5005
+    Class 2:
+      Precision: 0.3978
+      Recall:    0.6448
+      F1-Score:  0.4921
+    Class 3:
+      Precision: 0.1966
+      Recall:    0.0035
+      F1-Score:  0.0069
+
+  Confusion Matrix (4x4):
+    [5208, 623, 4126, 66]
+    [1484, 5702, 2821, 37]
+    [2825, 691, 6455, 40]
+    [1445, 5727, 2824, 35]
+
+   New best model! uar: 0.4339
+
+
+============================================================
+Epoch 5/20
+============================================================
+
+Epoch 5 Training Summary:
+  Average Losses:
+    Total: 0.8876
+    Fusion: 1.0929 (alpha=0.6)
+    Video:  0.6521 (beta=0.2)
+    Audio:  0.5073 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000027
+  Audio:  0.000027
+  Fusion: 0.000090
+
+Train:
+  Metrics:
+  Accuracy (ACC):  49.46%
+  UAR:             49.18%
+  WA-F1:           46.69%
+  AUC:             0.7833
+  Precision:       0.4874
+  Recall:          0.4918
+  F1-Score:        0.4651
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.5559
+      Recall:    0.7644
+      F1-Score:  0.6437
+    Class 1:
+      Precision: 0.4659
+      Recall:    0.3566
+      F1-Score:  0.4040
+    Class 2:
+      Precision: 0.4570
+      Recall:    0.6512
+      F1-Score:  0.5370
+    Class 3:
+      Precision: 0.4709
+      Recall:    0.1950
+      F1-Score:  0.2758
+
+  Confusion Matrix (4x4):
+    [9746, 371, 2536, 97]
+    [1923, 4438, 3624, 2460]
+    [3789, 471, 8228, 148]
+    [2075, 4245, 3618, 2407]
+
+Epoch 5 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.080, 2.234]
+    Mean: 0.169, Std: 1.388
+    Class 0: -1.191, Class 1: 1.255, Class 2: -0.649, Class 3: 1.261
+  Average Loss: 1.0456
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  50.99%
+  UAR:             51.01%
+  WA-F1:           48.57%
+  AUC:             0.7993
+  Precision:       0.4997
+  Recall:          0.5101
+  F1-Score:        0.4859
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6169
+      Recall:    0.7687
+      F1-Score:  0.6845
+    Class 1:
+      Precision: 0.4187
+      Recall:    0.3658
+      F1-Score:  0.3905
+    Class 2:
+      Precision: 0.4815
+      Recall:    0.6849
+      F1-Score:  0.5655
+    Class 3:
+      Precision: 0.4817
+      Recall:    0.2210
+      F1-Score:  0.3030
+
+  Confusion Matrix (4x4):
+    [7705, 589, 1608, 121]
+    [1302, 3674, 2896, 2172]
+    [2229, 833, 6857, 92]
+    [1254, 3679, 2881, 2217]
+
+   New best model! uar: 0.5101
+
+
+============================================================
+Epoch 6/20
+============================================================
+
+Epoch 6 Training Summary:
+  Average Losses:
+    Total: 0.8658
+    Fusion: 1.0630 (alpha=0.6)
+    Video:  0.6420 (beta=0.2)
+    Audio:  0.4981 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000025
+  Audio:  0.000025
+  Fusion: 0.000084
+
+Train:
+  Metrics:
+  Accuracy (ACC):  50.59%
+  UAR:             50.60%
+  WA-F1:           48.21%
+  AUC:             0.7966
+  Precision:       0.4949
+  Recall:          0.5060
+  F1-Score:        0.4820
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.5886
+      Recall:    0.7787
+      F1-Score:  0.6704
+    Class 1:
+      Precision: 0.4569
+      Recall:    0.3396
+      F1-Score:  0.3897
+    Class 2:
+      Precision: 0.4680
+      Recall:    0.6628
+      F1-Score:  0.5486
+    Class 3:
+      Precision: 0.4662
+      Recall:    0.2428
+      F1-Score:  0.3193
+
+  Confusion Matrix (4x4):
+    [9840, 375, 2291, 131]
+    [1781, 4266, 3439, 3074]
+    [3337, 559, 8226, 289]
+    [1759, 4136, 3622, 3051]
+
+Epoch 6 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.188, 2.320]
+    Mean: 0.129, Std: 1.474
+    Class 0: -1.307, Class 1: 1.229, Class 2: -0.638, Class 3: 1.231
+  Average Loss: 1.0240
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  51.77%
+  UAR:             51.79%
+  WA-F1:           48.82%
+  AUC:             0.8048
+  Precision:       0.5170
+  Recall:          0.5179
+  F1-Score:        0.4883
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6871
+      Recall:    0.7310
+      F1-Score:  0.7084
+    Class 1:
+      Precision: 0.4366
+      Recall:    0.4037
+      F1-Score:  0.4195
+    Class 2:
+      Precision: 0.4620
+      Recall:    0.7706
+      F1-Score:  0.5777
+    Class 3:
+      Precision: 0.4822
+      Recall:    0.1665
+      F1-Score:  0.2475
+
+  Confusion Matrix (4x4):
+    [7327, 488, 2128, 80]
+    [896, 4055, 3438, 1655]
+    [1578, 661, 7714, 58]
+    [862, 4083, 3416, 1670]
+
+   New best model! uar: 0.5179
+
+
+============================================================
+Epoch 7/20
+============================================================
+
+Epoch 7 Training Summary:
+  Average Losses:
+    Total: 0.8524
+    Fusion: 1.0441 (alpha=0.6)
+    Video:  0.6370 (beta=0.2)
+    Audio:  0.4924 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000023
+  Audio:  0.000023
+  Fusion: 0.000077
+
+Train:
+  Metrics:
+  Accuracy (ACC):  51.25%
+  UAR:             51.17%
+  WA-F1:           48.80%
+  AUC:             0.8045
+  Precision:       0.5006
+  Recall:          0.5117
+  F1-Score:        0.4875
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6166
+      Recall:    0.7755
+      F1-Score:  0.6870
+    Class 1:
+      Precision: 0.4551
+      Recall:    0.3579
+      F1-Score:  0.4007
+    Class 2:
+      Precision: 0.4711
+      Recall:    0.6870
+      F1-Score:  0.5589
+    Class 3:
+      Precision: 0.4597
+      Recall:    0.2265
+      F1-Score:  0.3035
+
+  Confusion Matrix (4x4):
+    [9767, 359, 2345, 124]
+    [1461, 4473, 3641, 2924]
+    [3053, 606, 8645, 280]
+    [1558, 4390, 3719, 2831]
+
+Epoch 7 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-1.871, 2.406]
+    Mean: 0.205, Std: 1.533
+    Class 0: -1.280, Class 1: 1.389, Class 2: -0.682, Class 3: 1.393
+  Average Loss: 1.0266
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  50.91%
+  UAR:             50.92%
+  WA-F1:           48.04%
+  AUC:             0.8055
+  Precision:       0.4886
+  Recall:          0.5092
+  F1-Score:        0.4805
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6826
+      Recall:    0.7600
+      F1-Score:  0.7192
+    Class 1:
+      Precision: 0.4193
+      Recall:    0.4956
+      F1-Score:  0.4543
+    Class 2:
+      Precision: 0.4814
+      Recall:    0.6482
+      F1-Score:  0.5525
+    Class 3:
+      Precision: 0.3709
+      Recall:    0.1331
+      F1-Score:  0.1959
+
+  Confusion Matrix (4x4):
+    [7617, 723, 1573, 110]
+    [933, 4978, 2720, 1413]
+    [1706, 1075, 6489, 741]
+    [903, 5096, 2697, 1335]
+
+============================================================
+Epoch 8/20
+============================================================
+
+Epoch 8 Training Summary:
+  Average Losses:
+    Total: 0.8397
+    Fusion: 1.0272 (alpha=0.6)
+    Video:  0.6309 (beta=0.2)
+    Audio:  0.4856 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000021
+  Audio:  0.000021
+  Fusion: 0.000070
+
+Train:
+  Metrics:
+  Accuracy (ACC):  52.14%
+  UAR:             52.19%
+  WA-F1:           49.88%
+  AUC:             0.8109
+  Precision:       0.5063
+  Recall:          0.5219
+  F1-Score:        0.4991
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6328
+      Recall:    0.7927
+      F1-Score:  0.7038
+    Class 1:
+      Precision: 0.4526
+      Recall:    0.3520
+      F1-Score:  0.3960
+    Class 2:
+      Precision: 0.4878
+      Recall:    0.6889
+      F1-Score:  0.5712
+    Class 3:
+      Precision: 0.4520
+      Recall:    0.2540
+      F1-Score:  0.3252
+
+  Confusion Matrix (4x4):
+    [9954, 349, 2051, 203]
+    [1419, 4419, 3457, 3258]
+    [2862, 598, 8588, 418]
+    [1494, 4398, 3508, 3200]
+
+Epoch 8 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-1.828, 2.383]
+    Mean: 0.183, Std: 1.484
+    Class 0: -1.207, Class 1: 1.335, Class 2: -0.680, Class 3: 1.285
+  Average Loss: 1.0105
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  52.20%
+  UAR:             52.21%
+  WA-F1:           45.29%
+  AUC:             0.8097
+  Precision:       0.4531
+  Recall:          0.5221
+  F1-Score:        0.4530
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6418
+      Recall:    0.8270
+      F1-Score:  0.7227
+    Class 1:
+      Precision: 0.4450
+      Recall:    0.5789
+      F1-Score:  0.5032
+    Class 2:
+      Precision: 0.4910
+      Recall:    0.6732
+      F1-Score:  0.5678
+    Class 3:
+      Precision: 0.2346
+      Recall:    0.0095
+      F1-Score:  0.0182
+
+  Confusion Matrix (4x4):
+    [8289, 407, 1214, 113]
+    [1269, 5814, 2860, 101]
+    [2155, 1021, 6739, 96]
+    [1202, 5822, 2912, 95]
+
+   New best model! uar: 0.5221
+
+
+============================================================
+Epoch 9/20
+============================================================
+
+Epoch 9 Training Summary:
+  Average Losses:
+    Total: 0.8344
+    Fusion: 1.0198 (alpha=0.6)
+    Video:  0.6310 (beta=0.2)
+    Audio:  0.4817 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000019
+  Audio:  0.000019
+  Fusion: 0.000062
+
+Train:
+  Metrics:
+  Accuracy (ACC):  52.22%
+  UAR:             52.38%
+  WA-F1:           50.08%
+  AUC:             0.8143
+  Precision:       0.5081
+  Recall:          0.5238
+  F1-Score:        0.5017
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6461
+      Recall:    0.7852
+      F1-Score:  0.7089
+    Class 1:
+      Precision: 0.4481
+      Recall:    0.3678
+      F1-Score:  0.4040
+    Class 2:
+      Precision: 0.4876
+      Recall:    0.6916
+      F1-Score:  0.5719
+    Class 3:
+      Precision: 0.4506
+      Recall:    0.2507
+      F1-Score:  0.3221
+
+  Confusion Matrix (4x4):
+    [9813, 404, 2093, 188]
+    [1338, 4632, 3404, 3221]
+    [2690, 670, 8580, 466]
+    [1348, 4631, 3520, 3178]
+
+Epoch 9 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.338, 2.738]
+    Mean: 0.215, Std: 1.721
+    Class 0: -1.508, Class 1: 1.577, Class 2: -0.848, Class 3: 1.639
+  Average Loss: 1.0882
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  48.77%
+  UAR:             48.79%
+  WA-F1:           46.85%
+  AUC:             0.7909
+  Precision:       0.4589
+  Recall:          0.4879
+  F1-Score:        0.4686
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6396
+      Recall:    0.7254
+      F1-Score:  0.6798
+    Class 1:
+      Precision: 0.2431
+      Recall:    0.1454
+      F1-Score:  0.1819
+    Class 2:
+      Precision: 0.4828
+      Recall:    0.5445
+      F1-Score:  0.5118
+    Class 3:
+      Precision: 0.4700
+      Recall:    0.5362
+      F1-Score:  0.5010
+
+  Confusion Matrix (4x4):
+    [7271, 833, 1521, 398]
+    [1076, 1460, 2170, 5338]
+    [1955, 2276, 5451, 329]
+    [1066, 1437, 2149, 5379]
+
+============================================================
+Epoch 10/20
+============================================================
+
+Epoch 10 Training Summary:
+  Average Losses:
+    Total: 0.8237
+    Fusion: 1.0054 (alpha=0.6)
+    Video:  0.6297 (beta=0.2)
+    Audio:  0.4726 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000016
+  Audio:  0.000016
+  Fusion: 0.000054
+
+Train:
+  Metrics:
+  Accuracy (ACC):  53.07%
+  UAR:             53.27%
+  WA-F1:           51.19%
+  AUC:             0.8205
+  Precision:       0.5169
+  Recall:          0.5327
+  F1-Score:        0.5134
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6557
+      Recall:    0.7927
+      F1-Score:  0.7178
+    Class 1:
+      Precision: 0.4461
+      Recall:    0.3592
+      F1-Score:  0.3980
+    Class 2:
+      Precision: 0.5032
+      Recall:    0.6897
+      F1-Score:  0.5818
+    Class 3:
+      Precision: 0.4626
+      Recall:    0.2892
+      F1-Score:  0.3559
+
+  Confusion Matrix (4x4):
+    [9802, 402, 1951, 210]
+    [1194, 4541, 3240, 3666]
+    [2667, 830, 8618, 381]
+    [1285, 4406, 3318, 3665]
+
+Epoch 10 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-1.870, 2.340]
+    Mean: 0.224, Std: 1.528
+    Class 0: -1.321, Class 1: 1.462, Class 2: -0.700, Class 3: 1.457
+  Average Loss: 1.0483
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  50.43%
+  UAR:             50.44%
+  WA-F1:           47.11%
+  AUC:             0.8016
+  Precision:       0.4961
+  Recall:          0.5044
+  F1-Score:        0.4712
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6892
+      Recall:    0.7536
+      F1-Score:  0.7200
+    Class 1:
+      Precision: 0.3944
+      Recall:    0.5736
+      F1-Score:  0.4674
+    Class 2:
+      Precision: 0.4884
+      Recall:    0.5884
+      F1-Score:  0.5337
+    Class 3:
+      Precision: 0.4124
+      Recall:    0.1021
+      F1-Score:  0.1637
+
+  Confusion Matrix (4x4):
+    [7553, 860, 1355, 255]
+    [900, 5761, 2416, 967]
+    [1640, 2244, 5890, 237]
+    [866, 5742, 2399, 1024]
+
+============================================================
+Epoch 11/20
+============================================================
+
+Epoch 11 Training Summary:
+  Average Losses:
+    Total: 0.8139
+    Fusion: 0.9929 (alpha=0.6)
+    Video:  0.6243 (beta=0.2)
+    Audio:  0.4665 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000014
+  Audio:  0.000014
+  Fusion: 0.000046
+
+Train:
+  Metrics:
+  Accuracy (ACC):  53.58%
+  UAR:             53.58%
+  WA-F1:           51.93%
+  AUC:             0.8253
+  Precision:       0.5227
+  Recall:          0.5358
+  F1-Score:        0.5196
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6739
+      Recall:    0.7762
+      F1-Score:  0.7214
+    Class 1:
+      Precision: 0.4490
+      Recall:    0.3541
+      F1-Score:  0.3959
+    Class 2:
+      Precision: 0.5095
+      Recall:    0.7026
+      F1-Score:  0.5907
+    Class 3:
+      Precision: 0.4585
+      Recall:    0.3104
+      F1-Score:  0.3702
+
+  Confusion Matrix (4x4):
+    [9637, 380, 2198, 200]
+    [1082, 4429, 3157, 3841]
+    [2459, 753, 8920, 563]
+    [1123, 4302, 3234, 3898]
+
+Epoch 11 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.262, 2.344]
+    Mean: 0.193, Std: 1.539
+    Class 0: -1.293, Class 1: 1.401, Class 2: -0.710, Class 3: 1.372
+  Average Loss: 1.1002
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  49.36%
+  UAR:             49.36%
+  WA-F1:           45.01%
+  AUC:             0.7882
+  Precision:       0.4913
+  Recall:          0.4936
+  F1-Score:        0.4502
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6215
+      Recall:    0.7575
+      F1-Score:  0.6828
+    Class 1:
+      Precision: 0.3938
+      Recall:    0.5687
+      F1-Score:  0.4653
+    Class 2:
+      Precision: 0.4880
+      Recall:    0.5770
+      F1-Score:  0.5288
+    Class 3:
+      Precision: 0.4617
+      Recall:    0.0715
+      F1-Score:  0.1238
+
+  Confusion Matrix (4x4):
+    [7592, 1073, 1311, 47]
+    [1190, 5712, 2386, 756]
+    [2231, 1971, 5776, 33]
+    [1202, 5750, 2362, 717]
+
+============================================================
+Epoch 12/20
+============================================================
+
+Epoch 12 Training Summary:
+  Average Losses:
+    Total: 0.8085
+    Fusion: 0.9856 (alpha=0.6)
+    Video:  0.6214 (beta=0.2)
+    Audio:  0.4643 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000011
+  Audio:  0.000011
+  Fusion: 0.000038
+
+Train:
+  Metrics:
+  Accuracy (ACC):  53.68%
+  UAR:             53.68%
+  WA-F1:           51.44%
+  AUC:             0.8279
+  Precision:       0.5220
+  Recall:          0.5368
+  F1-Score:        0.5145
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6767
+      Recall:    0.7872
+      F1-Score:  0.7278
+    Class 1:
+      Precision: 0.4463
+      Recall:    0.4486
+      F1-Score:  0.4475
+    Class 2:
+      Precision: 0.5158
+      Recall:    0.6979
+      F1-Score:  0.5932
+    Class 3:
+      Precision: 0.4493
+      Recall:    0.2136
+      F1-Score:  0.2895
+
+  Confusion Matrix (4x4):
+    [9818, 559, 1991, 104]
+    [1116, 5702, 3106, 2786]
+    [2454, 966, 8755, 369]
+    [1120, 5548, 3123, 2659]
+
+Epoch 12 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-1.993, 2.373]
+    Mean: 0.204, Std: 1.510
+    Class 0: -1.295, Class 1: 1.438, Class 2: -0.712, Class 3: 1.385
+  Average Loss: 1.0329
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  50.95%
+  UAR:             50.96%
+  WA-F1:           44.64%
+  AUC:             0.8072
+  Precision:       0.4607
+  Recall:          0.5096
+  F1-Score:        0.4464
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7323
+      Recall:    0.7529
+      F1-Score:  0.7425
+    Class 1:
+      Precision: 0.3935
+      Recall:    0.6772
+      F1-Score:  0.4978
+    Class 2:
+      Precision: 0.4884
+      Recall:    0.6057
+      F1-Score:  0.5408
+    Class 3:
+      Precision: 0.2286
+      Recall:    0.0024
+      F1-Score:  0.0047
+
+  Confusion Matrix (4x4):
+    [7546, 1041, 1391, 45]
+    [715, 6802, 2506, 21]
+    [1322, 2610, 6064, 15]
+    [721, 6832, 2454, 24]
+
+============================================================
+Epoch 13/20
+============================================================
+
+Epoch 13 Training Summary:
+  Average Losses:
+    Total: 0.7963
+    Fusion: 0.9692 (alpha=0.6)
+    Video:  0.6163 (beta=0.2)
+    Audio:  0.4575 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000009
+  Audio:  0.000009
+  Fusion: 0.000030
+
+Train:
+  Metrics:
+  Accuracy (ACC):  54.63%
+  UAR:             54.67%
+  WA-F1:           53.05%
+  AUC:             0.8341
+  Precision:       0.5309
+  Recall:          0.5467
+  F1-Score:        0.5307
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6900
+      Recall:    0.8001
+      F1-Score:  0.7410
+    Class 1:
+      Precision: 0.4373
+      Recall:    0.3648
+      F1-Score:  0.3978
+    Class 2:
+      Precision: 0.5319
+      Recall:    0.7015
+      F1-Score:  0.6050
+    Class 3:
+      Precision: 0.4645
+      Recall:    0.3202
+      F1-Score:  0.3791
+
+  Confusion Matrix (4x4):
+    [10016, 448, 1870, 184]
+    [1055, 4554, 2901, 3973]
+    [2349, 882, 8793, 510]
+    [1096, 4529, 2968, 4048]
+
+Epoch 13 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-1.821, 2.316]
+    Mean: 0.220, Std: 1.499
+    Class 0: -1.278, Class 1: 1.465, Class 2: -0.762, Class 3: 1.453
+  Average Loss: 1.0566
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  49.96%
+  UAR:             49.97%
+  WA-F1:           47.40%
+  AUC:             0.8014
+  Precision:       0.4964
+  Recall:          0.4997
+  F1-Score:        0.4741
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6917
+      Recall:    0.7760
+      F1-Score:  0.7315
+    Class 1:
+      Precision: 0.3705
+      Recall:    0.5579
+      F1-Score:  0.4453
+    Class 2:
+      Precision: 0.5044
+      Recall:    0.5315
+      F1-Score:  0.5176
+    Class 3:
+      Precision: 0.4189
+      Recall:    0.1332
+      F1-Score:  0.2021
+
+  Confusion Matrix (4x4):
+    [7778, 999, 973, 273]
+    [903, 5604, 2161, 1376]
+    [1676, 2810, 5321, 204]
+    [887, 5713, 2095, 1336]
+
+============================================================
+Epoch 14/20
+============================================================
+
+Epoch 14 Training Summary:
+  Average Losses:
+    Total: 0.7885
+    Fusion: 0.9590 (alpha=0.6)
+    Video:  0.6151 (beta=0.2)
+    Audio:  0.4504 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000007
+  Audio:  0.000007
+  Fusion: 0.000023
+
+Train:
+  Metrics:
+  Accuracy (ACC):  55.32%
+  UAR:             55.30%
+  WA-F1:           52.84%
+  AUC:             0.8378
+  Precision:       0.5312
+  Recall:          0.5530
+  F1-Score:        0.5283
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6947
+      Recall:    0.8157
+      F1-Score:  0.7504
+    Class 1:
+      Precision: 0.4673
+      Recall:    0.5155
+      F1-Score:  0.4902
+    Class 2:
+      Precision: 0.5461
+      Recall:    0.6880
+      F1-Score:  0.6089
+    Class 3:
+      Precision: 0.4166
+      Recall:    0.1928
+      F1-Score:  0.2637
+
+  Confusion Matrix (4x4):
+    [10285, 376, 1708, 240]
+    [1038, 6494, 2612, 2453]
+    [2443, 749, 8560, 690]
+    [1038, 6278, 2796, 2416]
+
+Epoch 14 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-1.912, 2.520]
+    Mean: 0.203, Std: 1.604
+    Class 0: -1.438, Class 1: 1.503, Class 2: -0.741, Class 3: 1.487
+  Average Loss: 1.0780
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  51.56%
+  UAR:             51.57%
+  WA-F1:           47.20%
+  AUC:             0.8029
+  Precision:       0.4889
+  Recall:          0.5157
+  F1-Score:        0.4720
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.6926
+      Recall:    0.7940
+      F1-Score:  0.7398
+    Class 1:
+      Precision: 0.4096
+      Recall:    0.5826
+      F1-Score:  0.4810
+    Class 2:
+      Precision: 0.4993
+      Recall:    0.6175
+      F1-Score:  0.5521
+    Class 3:
+      Precision: 0.3540
+      Recall:    0.0688
+      F1-Score:  0.1152
+
+  Confusion Matrix (4x4):
+    [7958, 733, 1063, 269]
+    [922, 5852, 2590, 680]
+    [1708, 1811, 6182, 310]
+    [902, 5892, 2547, 690]
+
+============================================================
+Epoch 15/20
+============================================================
+
+Epoch 15 Training Summary:
+  Average Losses:
+    Total: 0.7819
+    Fusion: 0.9502 (alpha=0.6)
+    Video:  0.6117 (beta=0.2)
+    Audio:  0.4475 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000005
+  Audio:  0.000005
+  Fusion: 0.000016
+
+Train:
+  Metrics:
+  Accuracy (ACC):  55.66%
+  UAR:             55.80%
+  WA-F1:           54.30%
+  AUC:             0.8408
+  Precision:       0.5421
+  Recall:          0.5580
+  F1-Score:        0.5440
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7162
+      Recall:    0.8085
+      F1-Score:  0.7595
+    Class 1:
+      Precision: 0.4598
+      Recall:    0.3805
+      F1-Score:  0.4164
+    Class 2:
+      Precision: 0.5449
+      Recall:    0.7037
+      F1-Score:  0.6142
+    Class 3:
+      Precision: 0.4474
+      Recall:    0.3391
+      F1-Score:  0.3858
+
+  Confusion Matrix (4x4):
+    [10073, 308, 1747, 331]
+    [886, 4756, 2716, 4142]
+    [2170, 657, 8775, 867]
+    [936, 4622, 2867, 4323]
+
+Epoch 15 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.162, 2.418]
+    Mean: 0.208, Std: 1.553
+    Class 0: -1.426, Class 1: 1.504, Class 2: -0.746, Class 3: 1.500
+  Average Loss: 1.0827
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  49.60%
+  UAR:             49.61%
+  WA-F1:           48.25%
+  AUC:             0.7971
+  Precision:       0.4878
+  Recall:          0.4961
+  F1-Score:        0.4826
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7191
+      Recall:    0.7112
+      F1-Score:  0.7151
+    Class 1:
+      Precision: 0.3903
+      Recall:    0.4929
+      F1-Score:  0.4357
+    Class 2:
+      Precision: 0.4848
+      Recall:    0.5920
+      F1-Score:  0.5331
+    Class 3:
+      Precision: 0.3570
+      Recall:    0.1881
+      F1-Score:  0.2464
+
+  Confusion Matrix (4x4):
+    [7128, 801, 1507, 587]
+    [732, 4951, 2451, 1910]
+    [1327, 1856, 5927, 901]
+    [726, 5077, 2341, 1887]
+
+============================================================
+Epoch 16/20
+============================================================
+
+Epoch 16 Training Summary:
+  Average Losses:
+    Total: 0.7796
+    Fusion: 0.9474 (alpha=0.6)
+    Video:  0.6125 (beta=0.2)
+    Audio:  0.4432 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000003
+  Audio:  0.000003
+  Fusion: 0.000011
+
+Train:
+  Metrics:
+  Accuracy (ACC):  55.61%
+  UAR:             55.50%
+  WA-F1:           54.14%
+  AUC:             0.8420
+  Precision:       0.5391
+  Recall:          0.5550
+  F1-Score:        0.5405
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7134
+      Recall:    0.8045
+      F1-Score:  0.7563
+    Class 1:
+      Precision: 0.4535
+      Recall:    0.3908
+      F1-Score:  0.4198
+    Class 2:
+      Precision: 0.5483
+      Recall:    0.7104
+      F1-Score:  0.6189
+    Class 3:
+      Precision: 0.4412
+      Recall:    0.3143
+      F1-Score:  0.3671
+
+  Confusion Matrix (4x4):
+    [10200, 277, 1873, 328]
+    [895, 4827, 2660, 3969]
+    [2253, 662, 8915, 719]
+    [949, 4879, 2810, 3960]
+
+Epoch 16 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.277, 2.469]
+    Mean: 0.208, Std: 1.618
+    Class 0: -1.477, Class 1: 1.490, Class 2: -0.722, Class 3: 1.541
+  Average Loss: 1.0824
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  50.86%
+  UAR:             50.88%
+  WA-F1:           46.30%
+  AUC:             0.7984
+  Precision:       0.4676
+  Recall:          0.5088
+  F1-Score:        0.4633
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7136
+      Recall:    0.7394
+      F1-Score:  0.7263
+    Class 1:
+      Precision: 0.2544
+      Recall:    0.0477
+      F1-Score:  0.0803
+    Class 2:
+      Precision: 0.4814
+      Recall:    0.6287
+      F1-Score:  0.5453
+    Class 3:
+      Precision: 0.4208
+      Recall:    0.6195
+      F1-Score:  0.5012
+
+  Confusion Matrix (4x4):
+    [7411, 297, 1535, 780]
+    [780, 479, 2664, 6121]
+    [1415, 650, 6294, 1652]
+    [779, 457, 2581, 6214]
+
+============================================================
+Epoch 17/20
+============================================================
+
+Epoch 17 Training Summary:
+  Average Losses:
+    Total: 0.7740
+    Fusion: 0.9398 (alpha=0.6)
+    Video:  0.6092 (beta=0.2)
+    Audio:  0.4413 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000002
+  Audio:  0.000002
+  Fusion: 0.000006
+
+Train:
+  Metrics:
+  Accuracy (ACC):  55.87%
+  UAR:             55.83%
+  WA-F1:           54.54%
+  AUC:             0.8444
+  Precision:       0.5436
+  Recall:          0.5583
+  F1-Score:        0.5451
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7219
+      Recall:    0.7981
+      F1-Score:  0.7581
+    Class 1:
+      Precision: 0.4625
+      Recall:    0.3573
+      F1-Score:  0.4031
+    Class 2:
+      Precision: 0.5534
+      Recall:    0.7204
+      F1-Score:  0.6260
+    Class 3:
+      Precision: 0.4368
+      Recall:    0.3575
+      F1-Score:  0.3932
+
+  Confusion Matrix (4x4):
+    [10037, 254, 1955, 330]
+    [867, 4454, 2576, 4569]
+    [2096, 516, 9047, 899]
+    [903, 4407, 2770, 4496]
+
+Epoch 17 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.453, 2.383]
+    Mean: 0.213, Std: 1.588
+    Class 0: -1.469, Class 1: 1.524, Class 2: -0.727, Class 3: 1.521
+  Average Loss: 1.0838
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  50.29%
+  UAR:             50.30%
+  WA-F1:           48.27%
+  AUC:             0.7995
+  Precision:       0.4923
+  Recall:          0.5030
+  F1-Score:        0.4828
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7200
+      Recall:    0.7287
+      F1-Score:  0.7244
+    Class 1:
+      Precision: 0.3933
+      Recall:    0.5123
+      F1-Score:  0.4450
+    Class 2:
+      Precision: 0.4863
+      Recall:    0.6164
+      F1-Score:  0.5437
+    Class 3:
+      Precision: 0.3697
+      Recall:    0.1545
+      F1-Score:  0.2179
+
+  Confusion Matrix (4x4):
+    [7304, 829, 1503, 387]
+    [758, 5146, 2524, 1616]
+    [1331, 1869, 6171, 640]
+    [751, 5239, 2491, 1550]
+
+============================================================
+Epoch 18/20
+============================================================
+
+Epoch 18 Training Summary:
+  Average Losses:
+    Total: 0.7725
+    Fusion: 0.9381 (alpha=0.6)
+    Video:  0.6070 (beta=0.2)
+    Audio:  0.4412 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000001
+  Audio:  0.000001
+  Fusion: 0.000003
+
+Train:
+  Metrics:
+  Accuracy (ACC):  56.24%
+  UAR:             56.12%
+  WA-F1:           54.88%
+  AUC:             0.8450
+  Precision:       0.5467
+  Recall:          0.5612
+  F1-Score:        0.5478
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7205
+      Recall:    0.8093
+      F1-Score:  0.7623
+    Class 1:
+      Precision: 0.4645
+      Recall:    0.3477
+      F1-Score:  0.3977
+    Class 2:
+      Precision: 0.5521
+      Recall:    0.7133
+      F1-Score:  0.6225
+    Class 3:
+      Precision: 0.4497
+      Recall:    0.3744
+      F1-Score:  0.4086
+
+  Confusion Matrix (4x4):
+    [10277, 264, 1835, 323]
+    [899, 4299, 2625, 4541]
+    [2191, 487, 8926, 909]
+    [897, 4205, 2781, 4717]
+
+Epoch 18 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.365, 2.512]
+    Mean: 0.220, Std: 1.613
+    Class 0: -1.447, Class 1: 1.552, Class 2: -0.785, Class 3: 1.561
+  Average Loss: 1.0919
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  50.12%
+  UAR:             50.13%
+  WA-F1:           48.74%
+  AUC:             0.7981
+  Precision:       0.4885
+  Recall:          0.5013
+  F1-Score:        0.4875
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7055
+      Recall:    0.7477
+      F1-Score:  0.7260
+    Class 1:
+      Precision: 0.3970
+      Recall:    0.4745
+      F1-Score:  0.4323
+    Class 2:
+      Precision: 0.4906
+      Recall:    0.5798
+      F1-Score:  0.5315
+    Class 3:
+      Precision: 0.3609
+      Recall:    0.2034
+      F1-Score:  0.2602
+
+  Confusion Matrix (4x4):
+    [7494, 713, 1287, 529]
+    [799, 4766, 2389, 2090]
+    [1512, 1702, 5804, 993]
+    [817, 4823, 2351, 2040]
+
+============================================================
+Epoch 19/20
+============================================================
+
+Epoch 19 Training Summary:
+  Average Losses:
+    Total: 0.7722
+    Fusion: 0.9372 (alpha=0.6)
+    Video:  0.6074 (beta=0.2)
+    Audio:  0.4421 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000000
+  Audio:  0.000000
+  Fusion: 0.000001
+
+Train:
+  Metrics:
+  Accuracy (ACC):  56.18%
+  UAR:             56.32%
+  WA-F1:           54.85%
+  AUC:             0.8448
+  Precision:       0.5465
+  Recall:          0.5632
+  F1-Score:        0.5495
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7207
+      Recall:    0.8160
+      F1-Score:  0.7654
+    Class 1:
+      Precision: 0.4649
+      Recall:    0.3737
+      F1-Score:  0.4144
+    Class 2:
+      Precision: 0.5595
+      Recall:    0.7096
+      F1-Score:  0.6256
+    Class 3:
+      Precision: 0.4410
+      Recall:    0.3536
+      F1-Score:  0.3925
+
+  Confusion Matrix (4x4):
+    [10179, 337, 1663, 295]
+    [917, 4755, 2607, 4444]
+    [2150, 572, 8817, 887]
+    [877, 4564, 2673, 4439]
+
+Epoch 19 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.414, 2.521]
+    Mean: 0.224, Std: 1.630
+    Class 0: -1.474, Class 1: 1.585, Class 2: -0.802, Class 3: 1.586
+  Average Loss: 1.0887
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  49.91%
+  UAR:             49.92%
+  WA-F1:           48.41%
+  AUC:             0.7989
+  Precision:       0.4909
+  Recall:          0.4992
+  F1-Score:        0.4842
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7290
+      Recall:    0.7249
+      F1-Score:  0.7270
+    Class 1:
+      Precision: 0.3881
+      Recall:    0.5028
+      F1-Score:  0.4381
+    Class 2:
+      Precision: 0.4857
+      Recall:    0.5907
+      F1-Score:  0.5331
+    Class 3:
+      Precision: 0.3606
+      Recall:    0.1782
+      F1-Score:  0.2386
+
+  Confusion Matrix (4x4):
+    [7266, 866, 1448, 443]
+    [703, 5050, 2437, 1854]
+    [1281, 1944, 5913, 873]
+    [717, 5151, 2375, 1788]
+
+============================================================
+Epoch 20/20
+============================================================
+
+Epoch 20 Training Summary:
+  Average Losses:
+    Total: 0.7675
+    Fusion: 0.9309 (alpha=0.6)
+    Video:  0.6072 (beta=0.2)
+    Audio:  0.4373 (gamma=0.2)
+
+Learning Rates:
+  Video:  0.000000
+  Audio:  0.000000
+  Fusion: 0.000000
+
+Train:
+  Metrics:
+  Accuracy (ACC):  56.69%
+  UAR:             56.50%
+  WA-F1:           55.36%
+  AUC:             0.8480
+  Precision:       0.5507
+  Recall:          0.5650
+  F1-Score:        0.5522
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7288
+      Recall:    0.8060
+      F1-Score:  0.7655
+    Class 1:
+      Precision: 0.4676
+      Recall:    0.3973
+      F1-Score:  0.4296
+    Class 2:
+      Precision: 0.5647
+      Recall:    0.7238
+      F1-Score:  0.6344
+    Class 3:
+      Precision: 0.4416
+      Recall:    0.3327
+      F1-Score:  0.3795
+
+  Confusion Matrix (4x4):
+    [10162, 312, 1829, 305]
+    [810, 4926, 2547, 4116]
+    [2144, 567, 9223, 808]
+    [827, 4730, 2735, 4135]
+
+Epoch 20 Validation Summary:
+  Fusion Logits (last batch):
+    Range: [-2.420, 2.496]
+    Mean: 0.221, Std: 1.621
+    Class 0: -1.465, Class 1: 1.565, Class 2: -0.783, Class 3: 1.565
+  Average Loss: 1.0902
+
+Validation:
+  Metrics:
+  Accuracy (ACC):  50.01%
+  UAR:             50.02%
+  WA-F1:           48.38%
+  AUC:             0.7983
+  Precision:       0.4914
+  Recall:          0.5002
+  F1-Score:        0.4839
+
+  Per-Class Metrics:
+    Class 0:
+      Precision: 0.7282
+      Recall:    0.7210
+      F1-Score:  0.7246
+    Class 1:
+      Precision: 0.3909
+      Recall:    0.5021
+      F1-Score:  0.4396
+    Class 2:
+      Precision: 0.4840
+      Recall:    0.6055
+      F1-Score:  0.5380
+    Class 3:
+      Precision: 0.3625
+      Recall:    0.1720
+      F1-Score:  0.2333
+
+  Confusion Matrix (4x4):
+    [7227, 868, 1512, 416]
+    [708, 5043, 2491, 1802]
+    [1275, 1858, 6062, 816]
+    [715, 5132, 2459, 1725]
+
+Training complete.
+
+================================================================================
+Training Completed
+End Time: 2026-06-19 14:09:25
+================================================================================
