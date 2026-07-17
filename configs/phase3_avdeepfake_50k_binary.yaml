@@ -7,12 +7,12 @@ experiment:
 
 models:
   video:
-    architecture: "timesformer_hr"
+    architecture: "timesformer_base"
     pretrained: true
     freeze_backbone: true              # damit unfreeze_layers greift
-    unfreeze_layers: ["8", "9", "10", "11"]
+    unfreeze_layers: ["6", "7", "8", "9", "10", "11"]
     dropout: 0.1
-    num_frames: 16                  # Base ist auf 8 Frames vortrainiert
+    num_frames: 8                      # Base ist auf 8 Frames vortrainiert
     output_type: "video"
     num_classes: 2
 
@@ -52,7 +52,7 @@ datasets:
     balance_classes: false
   av_deepfake:
     enabled: true
-    cache_dir: "/data/shared/ali/deepfake-detection/cache_avdeepfake_448_binary"
+    cache_dir: "/data/shared/ali/deepfake-detection/cache_avdeepfake_uniform_binary"
     balance_classes: false
   deepspeak:
     enabled: false
@@ -63,7 +63,7 @@ data:
   video:
     max_frames: 16
     min_frames: 16
-    frame_size: 448
+    frame_size: 224
     normalize: true
     mean: [0.485, 0.456, 0.406]
     std: [0.229, 0.224, 0.225]
@@ -101,10 +101,10 @@ data:
       p: 0.2
 
 training:
-  batch_size: 8
+  batch_size: 32
   num_epochs: 20
   num_workers: 20
-  gradient_accumulation_steps: 8
+  gradient_accumulation_steps: 2
   use_weighted_sampler: true
 
   modality:
@@ -173,7 +173,7 @@ logging:
   tensorboard_dir: "/data/shared/ali/deepfake/logs/tensorboard/phase3_timesformer_avdeepfake_binary"
 
 checkpointing:
-  save_dir: "/data/shared/ali/deepfake/checkpoints_new/phase3_timesformer_avdeepfake_binary_448"
+  save_dir: "/data/shared/ali/deepfake/checkpoints_new/phase3_timesformer_avdeepfake_binary_concat"
   keep_last_n: 1
 
 system:
