@@ -7,6 +7,7 @@ authors:
     given-names: "Ali"
     affiliation: "Technische Universität Darmstadt"
 license: MIT
+repository-code: "https://github.com/Ali-Shariati-Najafabadi/multimodal-deepfake-detection"
 date-released: "2026-08-25"
 keywords:
   - deepfake detection

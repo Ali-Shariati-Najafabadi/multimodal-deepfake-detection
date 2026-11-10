@@ -71,6 +71,11 @@ docs/           Bachelor thesis (PDF)
 The experiments used Python 3.10, PyTorch 2.5.1 and CUDA 12.1 on a single NVIDIA H100 (80 GB).
 
 ```bash
+git clone https://github.com/Ali-Shariati-Najafabadi/multimodal-deepfake-detection.git
+cd multimodal-deepfake-detection
+```
+
+```bash
 conda env create -f environment.yml
 conda activate deepfake-detection
 ```
