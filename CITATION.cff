@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite the thesis."
+type: software
+title: "Detection of Multi-Modal Deepfakes: A Systematic Comparison of Architectures for Audio-Visual Video-Level Classification"
+authors:
+  - family-names: "Shariati Najafabadi"
+    given-names: "Ali"
+    affiliation: "Technische Universität Darmstadt"
+license: MIT
+date-released: "2026-08-25"
+keywords:
+  - deepfake detection
+  - multimodal learning
+  - audio-visual
+  - HuBERT
+  - TimeSformer
+  - X3D
+  - cross-dataset generalization
+preferred-citation:
+  type: thesis
+  title: "Detection of Multi-Modal Deepfakes: A Systematic Comparison of Architectures for Audio-Visual Video-Level Classification"
+  degree: "Bachelor's thesis"
+  authors:
+    - family-names: "Shariati Najafabadi"
+      given-names: "Ali"
+  institution:
+    name: "Technische Universität Darmstadt"
+  year: 2026

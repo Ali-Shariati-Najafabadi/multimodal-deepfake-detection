@@ -1,5 +1,9 @@
 # Detection of Multi-Modal Deepfakes
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Python](https://img.shields.io/badge/Python-3.10-blue.svg)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.5.1-ee4c2c.svg)
+
 **A Systematic Comparison of Architectures for Audio-Visual Video-Level Classification**
 
 Bachelor thesis by **Ali Shariati Najafabadi**, Department of Computer Science, TU Darmstadt, in cooperation with Fraunhofer SIT.
@@ -67,6 +71,13 @@ docs/           Bachelor thesis (PDF)
 The experiments used Python 3.10, PyTorch 2.5.1 and CUDA 12.1 on a single NVIDIA H100 (80 GB).
 
 ```bash
+conda env create -f environment.yml
+conda activate deepfake-detection
+```
+
+or, without conda:
+
+```bash
 pip install -r requirements.txt
 ```
 
@@ -93,6 +104,10 @@ pip install -r requirements.txt
    ```
 
 Trained model weights are not included.
+
+## License
+
+The code is released under the [MIT License](LICENSE). The datasets and pretrained models used (e.g. `facebook/hubert-base-ls960`) have their own licenses and terms of use.
 
 ## Ethical Note
 
