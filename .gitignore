@@ -34,3 +34,6 @@ temp/
 *.tmp
 # Allow the thesis PDF
 !docs/*.pdf
+
+# Allow README figures
+!assets/*.png

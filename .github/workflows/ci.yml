@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Byte-compile all Python files
+        run: python -m compileall -q .
+      - name: Validate YAML configs and citation file
+        run: |
+          pip install pyyaml
+          python - <<'EOF'
+          import glob, yaml
+          for f in glob.glob("configs/*.yaml") + ["CITATION.cff"]:
+              yaml.safe_load(open(f, encoding="utf-8"))
+              print("ok", f)
+          EOF

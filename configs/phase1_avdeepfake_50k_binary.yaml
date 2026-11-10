@@ -1,5 +1,5 @@
 experiment:
-  name: "phase1_avdeepfake_50kـbinary"
+  name: "phase1_avdeepfake_50k_binary"
   phase: "phase1"
   seed: 42
   debug_mode: false
